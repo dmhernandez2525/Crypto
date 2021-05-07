@@ -140,12 +140,13 @@ const getCurrentPrice = () => {
   return priceArray.join("");
 };
 
-const handleSellLogic = () => {
+const handleSellLogic = (amount) => {
   //  Move to the sell tab
   clickSellTab();
 
+  // Should allays be selling in terms of usd
   // Enter amount
-  enterValue(0.4);
+  enterValue(amount);
 
   //   Click the review button
   clickReviewButton();
@@ -159,12 +160,15 @@ const handleSellLogic = () => {
     }, 500);
   }, 500);
 };
-const handleBuyLogic = () => {
+const handleBuyLogic = (amount) => {
+  // amount should always be a number
   //  Move to the buy tab
   clickBuyTab();
 
+  // Should allays be buying in terms of usd
+
   // Enter amount
-  enterValue(0.4);
+  enterValue(amount);
 
   //   Click the review button
   clickReviewButton();
@@ -200,11 +204,23 @@ const runTradingAlgo = async (data) => {
   let newData = false;
 
   // TODO:
-  // Step 1:  Loop over data and make any buys / sells that are necessary
+  // Step 1: look at data and make any buys / sells that are necessary
   // Step 2: Update newData with all the changes from Step 1
 
-  // await handleSellLogic()
-  // await handleBuyLogic()
+  let currentPrice =  getCurrentPrice()
+
+  let sells = {
+    // ex. type : amount 
+  }
+  let buys = {
+    // ex. type : amount 
+  }
+
+
+  // amount should always be a number
+  // TODO: ADD TYPESCRIPT!!!
+  Object.values(sells).forEach(amount => await handleSellLogic(amount) )
+  Object.values(buys).forEach(amount => await handleBuyLogic(amount) )
 
   return { newData };
 };
