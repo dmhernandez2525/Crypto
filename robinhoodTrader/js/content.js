@@ -1,7 +1,12 @@
 const clickSellTab = () => {
+  console.log("Move to the sell tab");
+
   document.querySelectorAll("[data-testid=OrderFormHeading-Sell]")[0].click();
+  document.querySelectorAll("[data-testid=OrderForm]")[0].click();
 };
 const clickBuyTab = () => {
+  console.log("Move to the buy tab");
+
   let divs = document.getElementsByTagName("div");
   let divContainer;
 
@@ -45,6 +50,32 @@ const getOrderTypes = () => {
   let market = test[0];
 
   return { limit, market };
+};
+const getCurrentBuyingPower = () => {};
+
+const getCurrentEquity = () => {
+  let divs = document.getElementsByTagName("div");
+  let divContainer;
+
+  for (let i = 0; i < divs.length; i++) {
+    if (divs[i].outerText === "Your Equity") {
+      divContainer = divs[i].parentNode;
+      break;
+    }
+  }
+
+  return divContainer.querySelector("span").outerText;
+};
+
+const getCurrentCoinAmount = () => {
+  clickSellType();
+
+  parseInt(
+    document
+      .querySelectorAll("[data-testid=OrderForm]")[0]
+      .querySelector("footer")
+      .textContent.split("DOGE Available")[0]
+  );
 };
 
 const clickReviewButton = () => {
@@ -109,47 +140,108 @@ const getCurrentPrice = () => {
   return priceArray.join("");
 };
 
+const handleSellLogic = () => {
+  //  Move to the sell tab
+  clickSellTab();
+
+  // Enter amount
+  enterValue(0.4);
+
+  //   Click the review button
+  clickReviewButton();
+
+  setTimeout(() => {
+    // Sell
+    handleSell();
+
+    setTimeout(() => {
+      clickDoneButton();
+    }, 500);
+  }, 500);
+};
+const handleBuyLogic = () => {
+  //  Move to the buy tab
+  clickBuyTab();
+
+  // Enter amount
+  enterValue(0.4);
+
+  //   Click the review button
+  clickReviewButton();
+
+  setTimeout(() => {
+    // buy
+    handleBuy();
+
+    setTimeout(() => {
+      clickDoneButton();
+    }, 500);
+  }, 500);
+};
+
+const runTradingAlgo = async (data) => {
+  // TODO: Add Typescript
+  // Example of what data looks like
+
+  // const allData = {
+  //   large: {
+  //     bet: 2,
+  //     base: 1,
+  //     hedge: 0.5,
+  //   },
+  //   small: {
+  //     1: { bet: 2, base: 1, hedge: 0 },
+  //     ".75": { bet: 1.75, base: 1, hedge: 0.25 },
+  //     ".50": { bet: 1.5, base: 1, hedge: 0.5 },
+  //     ".25": { bet: 1.25, base: 1, hedge: 0.75 },
+  //   },
+  // };
+
+  let newData = false;
+
+  // TODO:
+  // Step 1:  Loop over data and make any buys / sells that are necessary
+  // Step 2: Update newData with all the changes from Step 1
+
+  // await handleSellLogic()
+  // await handleBuyLogic()
+
+  return { newData };
+};
+
+const setData = (key, value) => {
+  chrome.storage.sync.set({ [key]: value }, () => {
+    console.log(`Set ${key} to ${value}`);
+  });
+};
+
+const getData = async () => {
+  const getStorageData = (key) =>
+    new Promise((resolve, reject) =>
+      chrome.storage.sync.get(key, (result) =>
+        chrome.runtime.lastError
+          ? reject(Error(chrome.runtime.lastError.message))
+          : resolve(result)
+      )
+    );
+
+  const { data } = await getStorageData("data");
+  return { data };
+};
+
 setTimeout(() => {
-  let flag = true;
-  let flag2 = true;
+  // Wait ten seconds before running any code
+  setInterval(async () => {
+    // Display the current price
+    console.log(getCurrentPrice());
 
-  setInterval(() => {
-    if (!flag2 && !flag2) {
-      // Display the current price
-      console.log(getCurrentPrice());
-    }
+    const { data } = await getData();
+    console.log({ data });
 
-    if (flag) {
-      console.log("Move to the sell tab");
-      //  Move to the sell tab
-      clickSellTab();
-      flag = false;
-    }
+    const { newData } = await runTradingAlgo(data);
 
-    if (!flag && flag2) {
-      // Enter amount
-      enterValue(0.4);
-
-      //   Click the review button
-      clickReviewButton();
-
-      setTimeout(() => {
-        // Sell
-        handleSell();
-
-        setTimeout(() => {
-          clickDoneButton();
-          flag2 = false;
-        }, 500);
-      }, 500);
+    if (newData) {
+      setData("data", newData);
     }
   }, 3000);
-}, 10000);
-
-// document.querySelector("#react_root > main > div:nth-child(3) > div > div > div > div > div > div > div > div.col-5 > div > div._2Pmzq64aRZSbuRk9bTAy8I._7qGfynPzmLSrSvaJCuhA_ > div:nth-child(2) > form")
-
-// #react_root > main > div:nth-child(3) > div > div > div > div > div > div > div > div.col-5 > div > div._2Pmzq64aRZSbuRk9bTAy8I._7qGfynPzmLSrSvaJCuhA_ > div:nth-child(2) > form
-
-//TODO: Make app for this!!!
-// - super meta talk to bjj
-// - Events / logn
+}, 5000);
