@@ -91,7 +91,7 @@ const getCurrentPrice = () => {
       .children[0].firstChild.firstChild.children
   ).forEach((ele) => priceArray.push(ele.innerText));
 
-  return priceArray.join("");
+  return parseFloat(parseFloat(priceArray.join("").split("$")[1]).toFixed(3));
 };
 
 const getCurrentBuyingPower = () => {
@@ -253,7 +253,7 @@ const runMicroTradingAlgo = (currentPrice, data) => {
   // update data
 
   tiers.forEach((tier) => {
-    const {
+    let {
       sellAt,
       buyAt,
       boughtAt,
