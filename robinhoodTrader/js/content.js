@@ -95,7 +95,15 @@ const getCurrentPrice = () => {
 };
 
 // TODO:
-const getCurrentBuyingPower = () => {};
+const getCurrentBuyingPower = () => {
+  clickBuyTab()
+  const currentBuyingPower =  parseInt( document
+  .querySelectorAll("[data-testid=OrderForm]")[0]
+  .querySelector("footer").firstChild.outerText.split(" available")[0].split("$")[1])
+  const onePercent = currentBuyingPower / 100;
+
+  return (currentBuyingPower  - onePercent)
+};
 
 // ==========================
 // Interact With Site
@@ -228,8 +236,6 @@ const runMainTradingAlgo = (currentPrice, data) => {
 
   return { mainSells, mainBuys, newData };
 };
-//      - tradeThreshold
-
 // TODO: GET THIS WORKING
 const runMicroTradingAlgo = (currentPrice, data) => {
   const microSells = {};
@@ -322,7 +328,7 @@ const currentBuyingPower =  getCurrentBuyingPower()
         ...data.Micro[tier],
         ...selections,
       };
-      
+
       microSells[`Micro${tier}`] = coinsBought * currentPrice
 
     } else if (whatToDo === "buy") {
