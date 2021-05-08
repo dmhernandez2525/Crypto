@@ -94,15 +94,18 @@ const getCurrentPrice = () => {
   return priceArray.join("");
 };
 
-// TODO:
 const getCurrentBuyingPower = () => {
-  clickBuyTab()
-  const currentBuyingPower =  parseInt( document
-  .querySelectorAll("[data-testid=OrderForm]")[0]
-  .querySelector("footer").firstChild.outerText.split(" available")[0].split("$")[1])
+  clickBuyTab();
+  const currentBuyingPower = parseInt(
+    document
+      .querySelectorAll("[data-testid=OrderForm]")[0]
+      .querySelector("footer")
+      .firstChild.outerText.split(" available")[0]
+      .split("$")[1]
+  );
   const onePercent = currentBuyingPower / 100;
 
-  return (currentBuyingPower  - onePercent)
+  return currentBuyingPower - onePercent;
 };
 
 // ==========================
@@ -242,9 +245,8 @@ const runMicroTradingAlgo = (currentPrice, data) => {
   const microBuys = {};
 
   const newMicroData = {};
-const currentEquity =  getCurrentEquity()
-const currentBuyingPower =  getCurrentBuyingPower()
-
+  const currentEquity = getCurrentEquity();
+  const currentBuyingPower = getCurrentBuyingPower();
 
   const tiers = ["Tier1", "Tier2", "Tier3", "Tier4"];
   // DO some check and update buys / sells
@@ -269,7 +271,6 @@ const currentBuyingPower =  getCurrentBuyingPower()
       totalEquityLost,
     } = data.Micro[tier];
     let whatToDo = false;
-
     const selections = {};
     const tradeInfo = {
       // TODO: make this random
@@ -305,7 +306,6 @@ const currentBuyingPower =  getCurrentBuyingPower()
       //       - microSells
       //       - coinsBought
 
-
       const currentTrades = JSON.parse(JSON.stringify(trades));
       currentTrades[tradeInfo.id] = tradeInfo;
 
@@ -329,8 +329,7 @@ const currentBuyingPower =  getCurrentBuyingPower()
         ...selections,
       };
 
-      microSells[`Micro${tier}`] = coinsBought * currentPrice
-
+      microSells[`Micro${tier}`] = coinsBought * currentPrice;
     } else if (whatToDo === "buy") {
       //  - If should buy
       //    - Update
@@ -347,7 +346,7 @@ const currentBuyingPower =  getCurrentBuyingPower()
 
       const currentTrades = JSON.parse(JSON.stringify(trades));
       currentTrades[tradeInfo.id] = tradeInfo;
-      const amountUsdToBuy =   currentEquity + currentBuyingPower * .65
+      const amountUsdToBuy = currentEquity + currentBuyingPower * 0.65;
 
       selections["currentPercentageHolding"] = 6.5;
       selections["currentPercentageInvested"] = 0;
@@ -357,22 +356,20 @@ const currentBuyingPower =  getCurrentBuyingPower()
       selections["boughtAt"] = currentPrice;
       selections["needToSell"] = true;
       selections["needToBuy"] = false;
-      selections["coinsBought"] = parseInt( amountUsdToBuy / currentPrice). ;
+      selections["coinsBought"] = parseInt(amountUsdToBuy / currentPrice);
 
       newMicroData[tier] = {
         ...data.Micro[tier],
         ...selections,
       };
 
-      microBuys[`Micro${tier}`] = amountUsdToBuy
-
+      microBuys[`Micro${tier}`] = amountUsdToBuy;
     } else if (whatToDo === "hold") {
       //  - If should hold
       //    - Update
       //       - currentMissedTrades
       //       - allMissedTrades
       //       - shouldReset
-
 
       // TODO:make this dynamic
       // If the currentMissedTrades is at 5 then it needs to hold and set the next trade to reset
@@ -401,116 +398,6 @@ const currentBuyingPower =  getCurrentBuyingPower()
 // TODO: GET THIS WORKING
 const runAllTradingAlgos = async (data) => {
   // TODO: Add Typescript
-  // Example of what data looks like
-
-  const allData = {
-    // TODO: If the trade fails then this needs to track this
-    Hold: {
-      bet: 2,
-      base: 1,
-
-      // TODO: If the trade fails then this needs to track this
-      tradeThreshold: 1000,
-      trades: {},
-      currentMissedTrades: 0,
-      allMissedTrades: {},
-      totalEquityGained: 0,
-      totalEquityLost: 0,
-      // },
-    },
-    Main: {
-      bet: 2,
-      base: 1,
-      hedge: 0.5,
-
-      // TODO: If the trade fails then this needs to track this
-      tradeThreshold: 10,
-      trades: {},
-      currentMissedTrades: 0,
-      allMissedTrades: {},
-      totalEquityGained: 0,
-      totalEquityLost: 0,
-      // },
-    },
-    Micro: {
-      Tier1: {
-        sellAt: 1,
-        buyAt: 0,
-        boughtAt: 0,
-        soldAt: 1,
-        needToSell: true,
-        needToBuy: false,
-        // TODO: If the trade fails then this needs to track this
-        tradeThreshold: 1,
-        shouldReset: false,
-        coinsBought:0,
-        currentPercentageHolding: 0,
-        currentPercentageInvested: 0,
-        trades: {},
-        currentMissedTrades: 0,
-        allMissedTrades: {},
-        totalEquityGained: 0,
-        totalEquityLost: 0,
-      },
-
-      Tier2: {
-        sellAt: 1,
-        buyAt: 0,
-        boughtAt: 0,
-        soldAt: 1,
-        needToSell: true,
-        needToBuy: false,
-        tradeThreshold: 0.75,
-        shouldReset: false,
-        coinsBought:0,
-        currentPercentageHolding: 0,
-        currentPercentageInvested: 0,
-        trades: {},
-        currentMissedTrades: 0,
-        allMissedTrades: {},
-        totalEquityGained: 0,
-        totalEquityLost: 0,
-      },
-
-      Tier3: {
-        sellAt: 1,
-        buyAt: 0,
-        boughtAt: 0,
-        soldAt: 1,
-        needToSell: true,
-        needToBuy: false,
-        tradeThreshold: 0.5,
-        shouldReset: false,
-        coinsBought:0,
-        currentPercentageHolding: 0,
-        currentPercentageInvested: 0,
-        trades: {},
-        currentMissedTrades: 0,
-        allMissedTrades: {},
-        totalEquityGained: 0,
-        totalEquityLost: 0,
-      },
-
-      Tier4: {
-        sellAt: 1,
-        buyAt: 0,
-        boughtAt: 0,
-        soldAt: 1,
-        needToSell: true,
-        needToBuy: false,
-        tradeThreshold: 0.25,
-        shouldReset: false,
-        coinsBought:0,
-        currentPercentageHolding: 0,
-        currentPercentageInvested: 0,
-        trades: {},
-        currentMissedTrades: 0,
-        allMissedTrades: {},
-        totalEquityGained: 0,
-        totalEquityLost: 0,
-      },
-    },
-  };
 
   let newData = JSON.parse(JSON.stringify(data));
 
@@ -522,7 +409,10 @@ const runAllTradingAlgos = async (data) => {
 
   const { holdSells, holdBuys } = runHoldTradingAlgo(currentPrice, data);
   const { mainSells, mainBuys } = runMainTradingAlgo(currentPrice, data);
-  const { microSells, microBuys,newMicroData } = runMicroTradingAlgo(currentPrice, data);
+  const { microSells, microBuys, newMicroData } = runMicroTradingAlgo(
+    currentPrice,
+    data
+  );
 
   let sells = {
     // ex. type : amount
@@ -542,15 +432,16 @@ const runAllTradingAlgos = async (data) => {
   // TODO: ADD TYPESCRIPT!!!
   Object.values(sells).forEach(async (amount) => {
     // TODO: If the trade fails then this needs to track this
-    await handleSellLogic(amount);
+    // await handleSellLogic(amount);
   });
 
   Object.values(buys).forEach(async (amount) => {
-    await handleBuyLogic(amount);
+    // await handleBuyLogic(amount);
   });
 
-  newData.Micro = newMicroData
+  newData.Micro = newMicroData;
 
+  console.log(newData);
   return { newData };
 };
 
@@ -589,10 +480,118 @@ setTimeout(() => {
     const { data } = await getData();
     console.log({ data });
 
-    const { newData } = await data;
-
-    if (newData) {
-      setData("data", newData);
-    }
+    const { newData } = await runAllTradingAlgos(data);
+    setData(newData);
+    // if (!data) {
+    // TODO: make a reset function for this
+    // newData = resetData()
+    // setData("data", newData);
+    // }
   }, 3000);
 }, 5000);
+
+// Example of what data looks like
+// const allData = {
+//   // TODO: If the trade fails then this needs to track this
+//   Hold: {
+//     bet: 2,
+//     base: 1,
+//     // TODO: If the trade fails then this needs to track this
+//     tradeThreshold: 1000,
+//     trades: {},
+//     currentMissedTrades: 0,
+//     allMissedTrades: {},
+//     totalEquityGained: 0,
+//     totalEquityLost: 0,
+//   },
+//   Main: {
+//     bet: 2,
+//     base: 1,
+//     hedge: 0.5,
+//     // TODO: If the trade fails then this needs to track this
+//     tradeThreshold: 10,
+//     trades: {},
+//     currentMissedTrades: 0,
+//     allMissedTrades: {},
+//     totalEquityGained: 0,
+//     totalEquityLost: 0,
+//   },
+//   Micro: {
+//     Tier1: {
+//       sellAt: 1,
+//       buyAt: 0,
+//       boughtAt: 0,
+//       soldAt: 1,
+//       needToSell: true,
+//       needToBuy: false,
+//       // TODO: If the trade fails then this needs to track this
+//       tradeThreshold: 1,
+//       shouldReset: false,
+//       coinsBought: 0,
+//       currentPercentageHolding: 0,
+//       currentPercentageInvested: 0,
+//       trades: {},
+//       currentMissedTrades: 0,
+//       allMissedTrades: {},
+//       totalEquityGained: 0,
+//       totalEquityLost: 0,
+//     },
+
+//     Tier2: {
+//       sellAt: 1,
+//       buyAt: 0,
+//       boughtAt: 0,
+//       soldAt: 1,
+//       needToSell: true,
+//       needToBuy: false,
+//       tradeThreshold: 0.75,
+//       shouldReset: false,
+//       coinsBought: 0,
+//       currentPercentageHolding: 0,
+//       currentPercentageInvested: 0,
+//       trades: {},
+//       currentMissedTrades: 0,
+//       allMissedTrades: {},
+//       totalEquityGained: 0,
+//       totalEquityLost: 0,
+//     },
+
+//     Tier3: {
+//       sellAt: 1,
+//       buyAt: 0,
+//       boughtAt: 0,
+//       soldAt: 1,
+//       needToSell: true,
+//       needToBuy: false,
+//       tradeThreshold: 0.5,
+//       shouldReset: false,
+//       coinsBought: 0,
+//       currentPercentageHolding: 0,
+//       currentPercentageInvested: 0,
+//       trades: {},
+//       currentMissedTrades: 0,
+//       allMissedTrades: {},
+//       totalEquityGained: 0,
+//       totalEquityLost: 0,
+//     },
+
+//     Tier4: {
+//       sellAt: 1,
+//       buyAt: 0,
+//       boughtAt: 0,
+//       soldAt: 1,
+//       needToSell: true,
+//       needToBuy: false,
+//       tradeThreshold: 0.25,
+//       shouldReset: false,
+//       coinsBought: 0,
+//       currentPercentageHolding: 0,
+//       currentPercentageInvested: 0,
+//       trades: {},
+//       currentMissedTrades: 0,
+//       allMissedTrades: {},
+//       totalEquityGained: 0,
+//       totalEquityLost: 0,
+//     },
+//   },
+// };
