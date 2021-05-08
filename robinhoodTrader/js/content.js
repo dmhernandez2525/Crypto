@@ -47,9 +47,7 @@ const getOrderTypes = () => {
   let test = document
     .getElementsByClassName("card-heading")[1]
     .parentNode.querySelectorAll("a")
-    .filter((e) => {
-      debugger;
-    });
+    .filter((e) => {});
   // TODO find a better way to do this
 
   let limit = test[0];
@@ -69,7 +67,10 @@ const getCurrentEquity = () => {
     }
   }
 
-  return divContainer.querySelector("span").outerText;
+  const unformattedText = divContainer.querySelector("span").outerText;
+  let formattedText = parseInt(unformattedText.split("$")[1]);
+
+  return formattedText;
 };
 
 const getCurrentCoinAmount = () => {
@@ -346,7 +347,7 @@ const runMicroTradingAlgo = (currentPrice, data) => {
 
       const currentTrades = JSON.parse(JSON.stringify(trades));
       currentTrades[tradeInfo.id] = tradeInfo;
-      const amountUsdToBuy = currentEquity + currentBuyingPower * 0.65;
+      const amountUsdToBuy = (currentEquity + currentBuyingPower) * 0.065;
 
       selections["currentPercentageHolding"] = 6.5;
       selections["currentPercentageInvested"] = 0;
@@ -362,7 +363,7 @@ const runMicroTradingAlgo = (currentPrice, data) => {
         ...data.Micro[tier],
         ...selections,
       };
-
+      console.log(amountUsdToBuy);
       microBuys[`Micro${tier}`] = amountUsdToBuy;
     } else if (whatToDo === "hold") {
       //  - If should hold
@@ -434,9 +435,10 @@ const runAllTradingAlgos = async (data) => {
     // TODO: If the trade fails then this needs to track this
     // await handleSellLogic(amount);
   });
-
+  console.log({ buys });
   Object.values(buys).forEach(async (amount) => {
-    // await handleBuyLogic(amount);
+    console.log({ amount });
+    await handleBuyLogic(amount);
   });
 
   newData.Micro = newMicroData;
@@ -519,10 +521,10 @@ setTimeout(() => {
 //   Micro: {
 //     Tier1: {
 //       sellAt: 1,
-//       buyAt: 0,
-//       boughtAt: 0,
+//       buyAt: 1,
+//       boughtAt: 1,
 //       soldAt: 1,
-//       needToSell: true,
+//       needToSell: false,
 //       needToBuy: false,
 //       // TODO: If the trade fails then this needs to track this
 //       tradeThreshold: 1,
@@ -539,10 +541,10 @@ setTimeout(() => {
 
 //     Tier2: {
 //       sellAt: 1,
-//       buyAt: 0,
-//       boughtAt: 0,
+//       buyAt: 1,
+//       boughtAt: 1,
 //       soldAt: 1,
-//       needToSell: true,
+//       needToSell: false,
 //       needToBuy: false,
 //       tradeThreshold: 0.75,
 //       shouldReset: false,
@@ -558,10 +560,10 @@ setTimeout(() => {
 
 //     Tier3: {
 //       sellAt: 1,
-//       buyAt: 0,
-//       boughtAt: 0,
+//       buyAt: 1,
+//       boughtAt: 1,
 //       soldAt: 1,
-//       needToSell: true,
+//       needToSell: false,
 //       needToBuy: false,
 //       tradeThreshold: 0.5,
 //       shouldReset: false,
@@ -576,12 +578,12 @@ setTimeout(() => {
 //     },
 
 //     Tier4: {
-//       sellAt: 1,
-//       buyAt: 0,
+//       sellAt: 0,
+//       buyAt: 1,
 //       boughtAt: 0,
-//       soldAt: 1,
-//       needToSell: true,
-//       needToBuy: false,
+//       soldAt: 0,
+//       needToSell: false,
+//       needToBuy: true,
 //       tradeThreshold: 0.25,
 //       shouldReset: false,
 //       coinsBought: 0,
