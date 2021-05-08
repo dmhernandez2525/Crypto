@@ -1,3 +1,6 @@
+// ==========================
+// Move Around On Site
+// ==========================
 const clickSellTab = () => {
   console.log("Move to the sell tab");
 
@@ -34,6 +37,9 @@ const clickSellType = () => {
   spanContainer.click();
 };
 
+// ==========================
+// Get Data
+// ==========================
 const getOrderTypes = () => {
   console.log("Click the order type button");
   document.querySelectorAll("[data-testid=MenuPopoverTrigger]")[0].click();
@@ -51,7 +57,6 @@ const getOrderTypes = () => {
 
   return { limit, market };
 };
-const getCurrentBuyingPower = () => {};
 
 const getCurrentEquity = () => {
   let divs = document.getElementsByTagName("div");
@@ -78,12 +83,30 @@ const getCurrentCoinAmount = () => {
   );
 };
 
+const getCurrentPrice = () => {
+  let priceArray = [];
+
+  Array.from(
+    document.querySelectorAll("[data-testid=PortfolioValue]")[0].children[0]
+      .children[0].firstChild.firstChild.children
+  ).forEach((ele) => priceArray.push(ele.innerText));
+
+  return priceArray.join("");
+};
+
+// TODO:
+const getCurrentBuyingPower = () => {};
+
+// ==========================
+// Interact With Site
+// ==========================
 const clickReviewButton = () => {
   console.log("Click the review button");
   document
     .querySelectorAll("[data-testid=OrderFormPrimaryButtonReview]")[0]
     .click();
 };
+
 const clickDoneButton = () => {
   // Find the done button
   console.log("Find the done button");
@@ -101,6 +124,7 @@ const clickDoneButton = () => {
   console.log(spanContainer);
   spanContainer.click();
 };
+
 const enterValue = (value) => {
   const input = document.querySelectorAll(
     "[data-testid=CryptoOrderFormRowsAmount]"
@@ -122,6 +146,7 @@ const handleSell = () => {
     .querySelectorAll("[data-testid=OrderFormPrimaryButtonSubmit]")[0]
     .click();
 };
+
 const handleBuy = () => {
   console.log("Buy");
   document
@@ -129,17 +154,9 @@ const handleBuy = () => {
     .click();
 };
 
-const getCurrentPrice = () => {
-  let priceArray = [];
-
-  Array.from(
-    document.querySelectorAll("[data-testid=PortfolioValue]")[0].children[0]
-      .children[0].firstChild.firstChild.children
-  ).forEach((ele) => priceArray.push(ele.innerText));
-
-  return priceArray.join("");
-};
-
+// ==========================
+// Large Interactions
+// ==========================
 const handleSellLogic = (amount) => {
   //  Move to the sell tab
   clickSellTab();
@@ -183,23 +200,137 @@ const handleBuyLogic = (amount) => {
   }, 500);
 };
 
-const runTradingAlgo = async (data) => {
+// ==========================
+// Trading Algorithms
+// ==========================
+// TODO: GET THIS WORKING
+const runHoldTradingAlgo = (currentPrice, data) => {
+  const holdSells = {};
+
+  const holdBuys = {};
+  const newData = { ...data };
+
+  // DO some check and update buys / sells
+  // update data
+
+  return { holdSells, holdBuys, newData };
+};
+
+// TODO: GET THIS WORKING
+const runMainTradingAlgo = (currentPrice, data) => {
+  const mainSells = {};
+
+  const mainBuys = {};
+  const newData = { ...data, newData };
+
+  // DO some check and update buys / sells
+  // update data
+
+  return { mainSells, mainBuys };
+};
+
+// TODO: GET THIS WORKING
+const runMicroTradingAlgo = (currentPrice, data) => {
+  const microSells = {};
+
+  const microBuys = {};
+  const newData = { ...data, newData };
+
+  // DO some check and update buys / sells
+  // update data
+
+  return { microSells, microBuys };
+};
+
+// TODO: GET THIS WORKING
+const runAllTradingAlgos = async (data) => {
   // TODO: Add Typescript
   // Example of what data looks like
 
-  // const allData = {
-  //   large: {
-  //     bet: 2,
-  //     base: 1,
-  //     hedge: 0.5,
-  //   },
-  //   small: {
-  //     1: { bet: 2, base: 1, hedge: 0 },
-  //     ".75": { bet: 1.75, base: 1, hedge: 0.25 },
-  //     ".50": { bet: 1.5, base: 1, hedge: 0.5 },
-  //     ".25": { bet: 1.25, base: 1, hedge: 0.75 },
-  //   },
-  // };
+  const allData = {
+    // TODO: If the trade fails then this needs to track this
+    Hold: {
+      bet: 2,
+      base: 1,
+      metadata: {
+        // TODO: If the trade fails then this needs to track this
+        tradeThreshold: 1000,
+        trades: {},
+        currentMissedTrades: 0,
+        allMissedTrades: {},
+        totalEquityGained: 0,
+        totalEquityLost: 0,
+      },
+    },
+    Main: {
+      bet: 2,
+      base: 1,
+      hedge: 0.5,
+      metadata: {
+        // TODO: If the trade fails then this needs to track this
+        tradeThreshold: 10,
+        trades: {},
+        currentMissedTrades: 0,
+        allMissedTrades: {},
+        totalEquityGained: 0,
+        totalEquityLost: 0,
+      },
+    },
+    Micro: {
+      "Tier 1": {
+        bet: 2,
+        base: 1,
+        metadata: {
+          // TODO: If the trade fails then this needs to track this
+          tradeThreshold: 1,
+          trades: {},
+          currentMissedTrades: 0,
+          allMissedTrades: {},
+          totalEquityGained: 0,
+          totalEquityLost: 0,
+        },
+      },
+
+      "Tier 2": {
+        bet: 1.75,
+        base: 1,
+        metadata: {
+          tradeThreshold: 0.75,
+          trades: {},
+          currentMissedTrades: 0,
+          allMissedTrades: {},
+          totalEquityGained: 0,
+          totalEquityLost: 0,
+        },
+      },
+
+      "Tier 3": {
+        bet: 1.5,
+        base: 1,
+        metadata: {
+          tradeThreshold: 0.5,
+          trades: {},
+          currentMissedTrades: 0,
+          allMissedTrades: {},
+          totalEquityGained: 0,
+          totalEquityLost: 0,
+        },
+      },
+
+      "Tier 4": {
+        bet: 1.25,
+        base: 1,
+        metadata: {
+          tradeThreshold: 0.25,
+          trades: {},
+          currentMissedTrades: 0,
+          allMissedTrades: {},
+          totalEquityGained: 0,
+          totalEquityLost: 0,
+        },
+      },
+    },
+  };
 
   let newData = false;
 
@@ -207,24 +338,43 @@ const runTradingAlgo = async (data) => {
   // Step 1: look at data and make any buys / sells that are necessary
   // Step 2: Update newData with all the changes from Step 1
 
-  let currentPrice =  getCurrentPrice()
+  let currentPrice = getCurrentPrice();
+
+  const { holdSells, holdBuys } = runHoldTradingAlgo(currentPrice, data);
+  const { mainSells, mainBuys } = runMainTradingAlgo(currentPrice, data);
+  const { microSells, microBuys } = runMicroTradingAlgo(currentPrice, data);
 
   let sells = {
-    // ex. type : amount 
-  }
+    // ex. type : amount
+    ...holdSells,
+    ...mainSells,
+    ...microSells,
+  };
   let buys = {
-    // ex. type : amount 
-  }
+    // ex. type : amount
+    ...holdBuys,
+    ...mainBuys,
+    ...microBuys,
+  };
 
-
+  // Make sells / buys based on the algos output
   // amount should always be a number
   // TODO: ADD TYPESCRIPT!!!
-  Object.values(sells).forEach(amount => await handleSellLogic(amount) )
-  Object.values(buys).forEach(amount => await handleBuyLogic(amount) )
+  Object.values(sells).forEach(async (amount) => {
+    // TODO: If the trade fails then this needs to track this
+    await handleSellLogic(amount);
+  });
+
+  Object.values(buys).forEach(async (amount) => {
+    await handleBuyLogic(amount);
+  });
 
   return { newData };
 };
 
+// ==========================
+// Data Management
+// ==========================
 const setData = (key, value) => {
   chrome.storage.sync.set({ [key]: value }, () => {
     console.log(`Set ${key} to ${value}`);
@@ -245,6 +395,9 @@ const getData = async () => {
   return { data };
 };
 
+// ==========================
+// Main Loop
+// ==========================
 setTimeout(() => {
   // Wait ten seconds before running any code
   setInterval(async () => {
@@ -254,7 +407,7 @@ setTimeout(() => {
     const { data } = await getData();
     console.log({ data });
 
-    const { newData } = await runTradingAlgo(data);
+    const { newData } = await data;
 
     if (newData) {
       setData("data", newData);
