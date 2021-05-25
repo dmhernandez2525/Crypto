@@ -248,6 +248,7 @@ const runMainTradingAlgo = (currentPrice, data) => {
 
   return { mainSells, mainBuys, newData };
 };
+
 // TODO: GET THIS WORKING
 const runMicroTradingAlgo = (currentPrice, data) => {
   const microSells = {};
@@ -258,7 +259,7 @@ const runMicroTradingAlgo = (currentPrice, data) => {
   const currentBuyingPower = getCurrentBuyingPower();
 
   const tiers = ["Tier1"];
-
+  // JJ-Note Possible improvement here with time complexity
   tiers.forEach((tier) => {
     let {
       sellAt,
@@ -276,15 +277,18 @@ const runMicroTradingAlgo = (currentPrice, data) => {
       totalEquityLost,
     } = data.Micro[tier];
 
-    let whatToDo = false;
     const selections = {};
+    let whatToDo = false;
     let tradeInfo = {
-      // TODO: make this random
       id: `${Date.now()} micro ${tier} at price ${currentPrice}`,
       currentPrice,
     };
+    // JJ-Note Trades is defined above so depending on logic or when functions called; Makes sense
+    // For some reason if you don't make a copy the original gets updated
+    let newCurrentMissedTrades = parseInt(currentMissedTrades.toString());
+    const currentTrades = JSON.parse(JSON.stringify(trades));
+    const renameMe = currentPrice * (tradeThreshold / 100);
 
-    let currentMissedTrades2 = parseInt(currentMissedTrades.toString());
     // Checks if sell , buy or hold is what we should do
     if (shouldReset) {
       whatToDo = "sell";
@@ -300,7 +304,6 @@ const runMicroTradingAlgo = (currentPrice, data) => {
       // TODO: fix this so that it calculating the correct value
       const amountMade = currentPrice - boughtAt;
 
-      const currentTrades = JSON.parse(JSON.stringify(trades));
       tradeInfo = { ...tradeInfo, type: "Sell" };
       currentTrades[tradeInfo.id] = tradeInfo;
 
@@ -310,14 +313,14 @@ const runMicroTradingAlgo = (currentPrice, data) => {
       selections["needToSell"] = false;
       selections["needToBuy"] = true;
       selections["currentMissedTrades"] = 0;
-      currentAllMissedTrades = {};
+      selections["allMissedTrades"] = {};
       selections["shouldReset"] = false;
-      selections["buyAt"] =
-        currentPrice - currentPrice * (tradeThreshold / 100);
+      selections["buyAt"] = currentPrice - renameMe;
       selections["soldAt"] = currentPrice;
       selections["coinsBought"] = 0;
 
       if (shouldReset) {
+        // TODO: double check this
         selections["totalEquityLost"] = totalEquityLost + -amountMade;
       } else {
         selections["totalEquityGained"] = totalEquityGained + amountMade;
@@ -328,52 +331,54 @@ const runMicroTradingAlgo = (currentPrice, data) => {
       };
       microSells[`Micro${tier}`] = coinsBought * currentPrice;
     } else if (whatToDo === "buy") {
-      //       - totalEquityGained
       // TODO: ADD MORE INFO FOR THE TRADES
-      const currentTrades = JSON.parse(JSON.stringify(trades));
       tradeInfo = { ...tradeInfo, type: "Buy" };
       currentTrades[tradeInfo.id] = tradeInfo;
-      // WHAT IS THIS DOING?
-      const amountUsdToBuy = (currentEquity + currentBuyingPower) * 0.05;
 
-      selections["currentPercentageHolding"] = 5;
+      const amountUsdToBuy =
+        (currentEquity + currentBuyingPower) * (tradeThreshold / 100);
+
+      // TODO: fix this
       selections["currentPercentageInvested"] = 0;
+      selections["currentPercentageHolding"] = tradeThreshold;
       selections["trades"] = currentTrades;
+
       // TODO: Make sure this is working correctly
-      selections["sellAt"] =
-        currentPrice + currentPrice * (tradeThreshold / 100);
+      selections["sellAt"] = currentPrice + renameMe;
       selections["boughtAt"] = currentPrice;
       selections["needToSell"] = true;
       selections["needToBuy"] = false;
-      selections["currentMissedTrades"] = 0;
-      currentAllMissedTrades = {};
-      selections["shouldReset"] = false;
       selections["coinsBought"] = parseInt(amountUsdToBuy / currentPrice);
+      selections["currentMissedTrades"] = 0;
+      selections["allMissedTrades"] = {};
+      selections["shouldReset"] = false;
 
       newMicroData[tier] = {
         ...data.Micro[tier],
         ...selections,
       };
+
       microBuys[`Micro${tier}`] = amountUsdToBuy;
     } else if (whatToDo === "hold") {
-      // TODO:make this dynamic
-      // If the currentMissedTrades is at 5 then it needs to hold and set the next trade to reset
-      // This needs additional logic so that it doesn't just add the first 5 trades
-      if (currentMissedTrades2 === 5) {
+      if (newCurrentMissedTrades === 5) {
+        // - If the currentMissedTrades is at 5 then it needs to hold and set the
+        //   next trade to reset
         selections["shouldReset"] = true;
         selections["currentMissedTrades"] = 0;
-      } else {
-        // TODO: need to workon buy and sell waite
-        if (needToSell) {
-          selections["currentMissedTrades"] = currentMissedTrades2 + 1;
+        selections["allMissedTrades"] = {};
+      }
 
-          const currentAllMissedTrades = JSON.parse(
-            JSON.stringify(allMissedTrades)
-          );
-          currentAllMissedTrades[tradeInfo.id] = tradeInfo;
+      if (newCurrentMissedTrades !== 5 && needToSell) {
+        // TODO:
+        // - This needs additional logic so that it doesn't just add the first 5
+        //   trades but instead tracks each missed trade at the correct proamitors
+        const currentAllMissedTrades = JSON.parse(
+          JSON.stringify(allMissedTrades)
+        );
 
-          selections["allMissedTrades"] = currentAllMissedTrades;
-        }
+        selections["currentMissedTrades"] = newCurrentMissedTrades + 1;
+        currentAllMissedTrades[tradeInfo.id] = tradeInfo;
+        selections["allMissedTrades"] = currentAllMissedTrades;
       }
 
       newMicroData[tier] = {
@@ -382,21 +387,18 @@ const runMicroTradingAlgo = (currentPrice, data) => {
       };
     }
   });
+
   return { microSells, microBuys, newMicroData };
 };
 
 // TODO: GET THIS WORKING
 const runAllTradingAlgos = async (data) => {
-  // TODO: Add Typescript
-
   let newData = JSON.parse(JSON.stringify(data));
-  console.log({ newData });
+  let currentPrice = getCurrentPrice();
+
   // TODO:
   // Step 1: look at data and make any buys / sells that are necessary
   // Step 2: Update newData with all the changes from Step 1
-
-  let currentPrice = getCurrentPrice();
-
   const { holdSells, holdBuys } = runHoldTradingAlgo(currentPrice, data);
   const { mainSells, mainBuys } = runMainTradingAlgo(currentPrice, data);
   const { microSells, microBuys, newMicroData } = runMicroTradingAlgo(
@@ -405,13 +407,11 @@ const runAllTradingAlgos = async (data) => {
   );
 
   let sells = {
-    // ex. type : amount
     ...holdSells,
     ...mainSells,
     ...microSells,
   };
   let buys = {
-    // ex. type : amount
     ...holdBuys,
     ...mainBuys,
     ...microBuys,
@@ -419,21 +419,16 @@ const runAllTradingAlgos = async (data) => {
 
   // Make sells / buys based on the algos output
   // amount should always be a number
-  // TODO: ADD TYPESCRIPT!!!
   Object.values(sells).forEach(async (amount) => {
     console.log({ amount });
-    // TODO: If the trade fails then this needs to track this
     await handleSellLogic(amount);
   });
-  console.log({ buys });
   Object.values(buys).forEach(async (amount) => {
     console.log({ amount });
     await handleBuyLogic(amount);
   });
 
   newData.Micro = newMicroData;
-
-  console.log({ newData });
   return { newData };
 };
 
@@ -462,17 +457,15 @@ const getData = async () => {
 
 const doRegularLoop = async () => {
   // Display the current price
-
   console.log(getCurrentPrice());
+
   const { data } = await getData();
-  console.log({ data });
   const { newData } = await runAllTradingAlgos(data);
+
   setData("data", newData);
 };
 
 const resetData = () => {
-  // TODO: make a reset function for this
-
   const allData = {
     Micro: {
       Tier1: {
@@ -503,13 +496,13 @@ const resetData = () => {
 // Main Loop
 // ==========================
 setTimeout(() => {
-  // Wait ten seconds before running any code
+  // Wait twenty seconds before running any code
   console.log("Wait twenty seconds before running any code");
   setInterval(async () => {
     await doRegularLoop();
-
     // resetData();
   }, 3000);
 }, 20000);
 
-// Example of what data looks like
+// TODO: Add Typescript
+// TODO: If the trade fails then this needs to track this
