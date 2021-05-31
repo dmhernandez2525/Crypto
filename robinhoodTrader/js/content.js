@@ -499,7 +499,7 @@ setTimeout(() => {
   // Wait twenty seconds before running any code
   console.log("Wait twenty seconds before running any code");
   setInterval(async () => {
-    await doRegularLoop();
+    // await doRegularLoop();
     // resetData();
   }, 3000);
 }, 20000);

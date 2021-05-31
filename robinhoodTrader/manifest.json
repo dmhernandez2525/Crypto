@@ -1,9 +1,10 @@
 {
-  "manifest_version": 2,
+  "manifest_version": 3,
   "name": "Auto Trade",
-  "version": "1.1.0",
+  "options_page": "options.html",
+  "version": "1.1.1",
   "description": "Auto Trade",
-  "permissions": ["contextMenus", "tabs", "storage"],
+  "permissions": ["contextMenus", "tabs", "storage", "activeTab", "scripting"],
   "content_scripts": [
     {
       "matches": ["https://robinhood.com/crypto/DOGE"],
@@ -11,13 +12,21 @@
     }
   ],
 
-  "browser_action": {
-    "default_icon": "images/icon.png"
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "/images/get_started16.png",
+      "32": "/images/get_started32.png",
+      "48": "/images/get_started48.png",
+      "128": "/images/get_started128.png"
+    }
   },
+
   "icons": {
-    "16": "images/icon.png",
-    "32": "images/icon.png",
-    "48": "images/icon.png",
-    "128": "images/icon.png"
+    "16": "/images/get_started16.png",
+    "32": "/images/get_started32.png",
+    "48": "/images/get_started48.png",
+    "128": "/images/get_started128.png"
   }
+
 }
