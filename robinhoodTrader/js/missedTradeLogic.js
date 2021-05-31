@@ -11,7 +11,6 @@ const buyMissedTrade = ({
   let currentMissedTradeInfo = JSON.parse(JSON.stringify(missedTradeInfo));
   let missedTrade = false;
 
-  boughtAt = 100;
   let tradingThresholdValue = boughtAt * (tradingThreshold / 100); // => 5
 
   let down = boughtAt - tradingThresholdValue;
@@ -33,7 +32,7 @@ const buyMissedTrade = ({
 };
 
 const sellMissedTrade = ({
-  boughtAt,
+  soldAt,
   tradingThreshold,
   currentValue,
   tradeInfo,
@@ -45,10 +44,9 @@ const sellMissedTrade = ({
   let currentMissedTradeInfo = JSON.parse(JSON.stringify(missedTradeInfo));
   let missedTrade = false;
 
-  // ex. tradingThreshold= 5% boughtAt = 100
-  let tradingThresholdValue = boughtAt * (tradingThreshold / 100); // => 5
+  let tradingThresholdValue = soldAt * (tradingThreshold / 100); // => 5
 
-  let up = boughtAt + tradingThresholdValue;
+  let up = soldAt + tradingThresholdValue;
 
   // If currentValue is more then up then we need to track that
   if (currentValue < up && !currentMissedTradeInfo.bellowOrAtUp) {
@@ -69,13 +67,20 @@ const holdAlgo = ({
   needToSell,
   needToBuy,
   boughtAt,
+  soldAt,
   tradingThreshold,
   currentValue,
   tradeInfo,
   missedTradeInfo,
 }) => {
   if (needToSell) {
-    const { currentMissedTradeInfo, missedTrade } = sellMissedTrade();
+    const { currentMissedTradeInfo, missedTrade } = sellMissedTrade({
+      soldAt,
+      tradingThreshold,
+      currentValue,
+      tradeInfo,
+      missedTradeInfo,
+    });
   }
   if (needToBuy) {
     const { currentMissedTradeInfo, missedTrade } = buyMissedTrade({

@@ -12,6 +12,11 @@ import {
 // ==========================
 import { handleSellLogic, handleBuyLogic } from "./largeInteractions";
 
+// ==========================
+// Missed Trade Logic
+// ==========================
+import { buyMissedTrade, sellMissedTrade } from "./missedTradeLogic";
+
 // TODO: GET THIS WORKING
 export const runHoldTradingAlgo = (currentPrice, data) => {
   const holdSells = {};
@@ -153,7 +158,7 @@ export const runMicroTradingAlgo = (currentPrice, data) => {
       // ex.
       // missedTradeInfo {bellowOrAtDown:tradeInfo, betwenDownAndBase:tradeInfo  }
       // missedTradeInfo: {bellowOrAtDown:false, betwenDownAndBase:false  }
-
+      // TODO: FIX THIS
       let missedTradeInfo = {
         bellowOrAtDown: false,
         betwenDownAndBase: false,
@@ -162,6 +167,7 @@ export const runMicroTradingAlgo = (currentPrice, data) => {
       };
 
       if (newCurrentMissedTrades === 5) {
+        // TODO: this needs to be reassed
         // - If the currentMissedTrades is at 5 then it needs to hold and set the
         //   next trade to reset
         selections["shouldReset"] = true;
@@ -177,9 +183,30 @@ export const runMicroTradingAlgo = (currentPrice, data) => {
           JSON.stringify(allMissedTrades)
         );
 
-        selections["currentMissedTrades"] = newCurrentMissedTrades + 1;
-        currentAllMissedTrades[tradeInfo.id] = tradeInfo;
-        selections["allMissedTrades"] = currentAllMissedTrades;
+        const { currentMissedTradeInfo, missedTrade } = sellMissedTrade({
+          soldAt,
+          tradingThreshold,
+          currentValue,
+          tradeInfo,
+          missedTradeInfo,
+        });
+
+        if (missedTrade) {
+          // THIS NEEDS TO BE FIXED
+          // THE types are all off
+          selections["currentMissedTrades"] = newCurrentMissedTrades + 1;
+          currentAllMissedTrades[tradeInfo.id] = tradeInfo;
+          selections["allMissedTrades"] = currentAllMissedTrades;
+        }
+      }
+      if (newCurrentMissedTrades !== 5 && needToBuy) {
+        const { currentMissedTradeInfo, missedTrade } = buyMissedTrade({
+          boughtAt,
+          tradingThreshold,
+          currentValue,
+          tradeInfo,
+          missedTradeInfo,
+        });
       }
 
       newMicroData[tier] = {
