@@ -3,21 +3,20 @@
   "name": "Auto Trade",
   "version": "1.1.0",
   "description": "Auto Trade",
-  "permissions": ["contextMenus", "tabs", "storage"],
+  "icons": {
+    "16": "assets/icons/icon16.png",
+    "48": "assets/icons/icon48.png",
+    "128": "assets/icons/icon128.png"
+  },
+  "browser_action": {
+    "default_icon": "assets/icons/icon16.png"
+  },
   "content_scripts": [
     {
-      "matches": ["https://robinhood.com/crypto/DOGE"],
-      "js": ["./js/content.js"]
+      "js": ["content/index.js"],
+      "matches": ["https://robinhood.com/crypto/DOGE"]
     }
   ],
 
-  "browser_action": {
-    "default_icon": "images/icon.png"
-  },
-  "icons": {
-    "16": "images/icon.png",
-    "32": "images/icon.png",
-    "48": "images/icon.png",
-    "128": "images/icon.png"
-  }
+  "permissions": ["contextMenus", "tabs", "storage"]
 }
