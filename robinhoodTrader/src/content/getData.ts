@@ -48,7 +48,7 @@ export const getCurrentCoinAmount = () => {
 };
 
 export const getCurrentPrice = () => {
-  let priceArray = [];
+  let priceArray: any = [];
 
   Array.from(
     document.querySelectorAll("[data-testid=PortfolioValue]")[0].children[0]

@@ -1,24 +1,39 @@
-const buyMissedTrade = ({
+interface IBuyMissedTradeProps {
+  boughtAt: number;
+  tradeThreshold: number;
+  currentPrice: number;
+  tradeInfo: any;
+  missedTradeInfo: any;
+}
+interface ISellMissedTradeProps {
+  soldAt: number;
+  tradeThreshold: number;
+  currentPrice: number;
+  tradeInfo: any;
+  missedTradeInfo: any;
+}
+
+export const buyMissedTrade = ({
   boughtAt,
-  tradingThreshold,
-  currentValue,
+  tradeThreshold,
+  currentPrice,
   tradeInfo,
   missedTradeInfo,
-}) => {
+}: IBuyMissedTradeProps) => {
   // This needs to deside if it should set the
   // current trade as a Missed Trade or not
 
   let currentMissedTradeInfo = JSON.parse(JSON.stringify(missedTradeInfo));
   let missedTrade = false;
 
-  let tradingThresholdValue = boughtAt * (tradingThreshold / 100); // => 5
+  let tradeThresholdValue = boughtAt * (tradeThreshold / 100); // => 5
 
-  let down = boughtAt - tradingThresholdValue;
+  let down = boughtAt - tradeThresholdValue;
 
-  // If currentValue is less then down then we need to track that
-  if (currentValue < down && !currentMissedTradeInfo.bellowOrAtDown) {
+  // If currentPrice is less then down then we need to track that
+  if (currentPrice < down && !currentMissedTradeInfo.bellowOrAtDown) {
     currentMissedTradeInfo.bellowOrAtDown = tradeInfo;
-  } else if (currentValue > down && currentMissedTradeInfo.bellowOrAtDown) {
+  } else if (currentPrice > down && currentMissedTradeInfo.bellowOrAtDown) {
     // When these 2 values are enterd then this is a missedTrade
 
     currentMissedTradeInfo.betwenDownAndBase = tradeInfo;
@@ -31,27 +46,27 @@ const buyMissedTrade = ({
   };
 };
 
-const sellMissedTrade = ({
+export const sellMissedTrade = ({
   soldAt,
-  tradingThreshold,
-  currentValue,
+  tradeThreshold,
+  currentPrice,
   tradeInfo,
   missedTradeInfo,
-}) => {
+}: ISellMissedTradeProps) => {
   // This needs to deside if it should set the
   // current trade as a Missed Trade or not
 
   let currentMissedTradeInfo = JSON.parse(JSON.stringify(missedTradeInfo));
   let missedTrade = false;
 
-  let tradingThresholdValue = soldAt * (tradingThreshold / 100); // => 5
+  let tradeThresholdValue = soldAt * (tradeThreshold / 100); // => 5
 
-  let up = soldAt + tradingThresholdValue;
+  let up = soldAt + tradeThresholdValue;
 
-  // If currentValue is more then up then we need to track that
-  if (currentValue < up && !currentMissedTradeInfo.bellowOrAtUp) {
+  // If currentPrice is more then up then we need to track that
+  if (currentPrice < up && !currentMissedTradeInfo.bellowOrAtUp) {
     currentMissedTradeInfo.bellowOrAtUp = tradeInfo;
-  } else if (currentValue > up && currentMissedTradeInfo.bellowOrAtUp) {
+  } else if (currentPrice > up && currentMissedTradeInfo.bellowOrAtUp) {
     // When these 2 values are enterd then this is a missedTrade
     currentMissedTradeInfo.betwenUpAndBase = tradeInfo;
     missedTrade = true;
@@ -62,48 +77,3 @@ const sellMissedTrade = ({
     missedTrade,
   };
 };
-
-const holdAlgo = ({
-  needToSell,
-  needToBuy,
-  boughtAt,
-  soldAt,
-  tradingThreshold,
-  currentValue,
-  tradeInfo,
-  missedTradeInfo,
-}) => {
-  if (needToSell) {
-    const { currentMissedTradeInfo, missedTrade } = sellMissedTrade({
-      soldAt,
-      tradingThreshold,
-      currentValue,
-      tradeInfo,
-      missedTradeInfo,
-    });
-  }
-  if (needToBuy) {
-    const { currentMissedTradeInfo, missedTrade } = buyMissedTrade({
-      boughtAt,
-      tradingThreshold,
-      currentValue,
-      tradeInfo,
-      missedTradeInfo,
-    });
-  }
-};
-
-holdAlgo({
-  needToSell: false,
-  needToBuy: true,
-  boughtAt: 100,
-  tradingThreshold: 5,
-  currentValue: 94,
-  tradeInfo: { hi: 1 },
-  missedTradeInfo: {
-    bellowOrAtDown: false,
-    betwenDownAndBase: false,
-    bellowOrAtUp: false,
-    betwenUpAndBase: false,
-  },
-});

@@ -1,11 +1,11 @@
-export const setData = (key, value) => {
+export const setData = (key: string, value: any) => {
   chrome.storage.sync.set({ [key]: value }, () => {
     console.log(`Set ${key} to ${value}`);
   });
 };
 
 export const getData = async () => {
-  const getStorageData = (key) =>
+  const getStorageData = (key: string) =>
     new Promise((resolve, reject) =>
       chrome.storage.sync.get(key, (result) =>
         chrome.runtime.lastError
@@ -14,6 +14,6 @@ export const getData = async () => {
       )
     );
 
-  const { data } = await getStorageData("data");
+  const { data }: any = await getStorageData("data");
   return { data };
 };

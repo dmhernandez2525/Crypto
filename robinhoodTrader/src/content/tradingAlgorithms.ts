@@ -1,3 +1,32 @@
+interface ITradingAlgoProps {
+  currentPrice: number;
+  // TODO: update this type
+  data: any;
+}
+interface ITradeInfo {
+  id: string;
+  currentPrice: number;
+  type?: string;
+}
+interface ISelections {
+  currentPercentageHolding?: number;
+  currentPercentageInvested?: number;
+  totalEquityLost?: number;
+  totalEquityGained?: number;
+  trades?: any;
+  needToSell?: boolean;
+  needToBuy?: boolean;
+  currentMissedTrades?: any;
+  allMissedTrades?: any;
+  shouldReset?: boolean;
+  buyAt?: number;
+  sellAt?: number;
+  boughtAt?: number;
+  soldAt?: number;
+  coinsBought?: number;
+  tradeThreshold?: number;
+}
+
 // ==========================
 // Get Data
 // ==========================
@@ -18,7 +47,10 @@ import { handleSellLogic, handleBuyLogic } from "./largeInteractions";
 import { buyMissedTrade, sellMissedTrade } from "./missedTradeLogic";
 
 // TODO: GET THIS WORKING
-export const runHoldTradingAlgo = (currentPrice, data) => {
+export const runHoldTradingAlgo = ({
+  currentPrice,
+  data,
+}: ITradingAlgoProps) => {
   const holdSells = {};
 
   const holdBuys = {};
@@ -31,7 +63,10 @@ export const runHoldTradingAlgo = (currentPrice, data) => {
 };
 
 // TODO: GET THIS WORKING
-export const runMainTradingAlgo = (currentPrice, data) => {
+export const runMainTradingAlgo = ({
+  currentPrice,
+  data,
+}: ITradingAlgoProps) => {
   const mainSells = {};
 
   const mainBuys = {};
@@ -44,7 +79,11 @@ export const runMainTradingAlgo = (currentPrice, data) => {
 };
 
 // TODO: GET THIS WORKING
-export const runMicroTradingAlgo = (currentPrice, data) => {
+
+export const runMicroTradingAlgo = ({
+  currentPrice,
+  data,
+}: ITradingAlgoProps) => {
   const microSells = {};
   const microBuys = {};
 
@@ -59,6 +98,7 @@ export const runMicroTradingAlgo = (currentPrice, data) => {
       sellAt,
       buyAt,
       boughtAt,
+      soldAt,
       needToSell,
       needToBuy,
       tradeThreshold,
@@ -71,9 +111,9 @@ export const runMicroTradingAlgo = (currentPrice, data) => {
       totalEquityLost,
     } = data.Micro[tier];
 
-    const selections = {};
-    let whatToDo = false;
-    let tradeInfo = {
+    const selections: ISelections = {};
+    let whatToDo: string = "";
+    let tradeInfo: ITradeInfo = {
       id: `${Date.now()} micro ${tier} at price ${currentPrice}`,
       currentPrice,
     };
@@ -142,7 +182,7 @@ export const runMicroTradingAlgo = (currentPrice, data) => {
       selections["boughtAt"] = currentPrice;
       selections["needToSell"] = true;
       selections["needToBuy"] = false;
-      selections["coinsBought"] = parseInt(amountUsdToBuy / currentPrice);
+      selections["coinsBought"] = amountUsdToBuy / currentPrice;
       selections["currentMissedTrades"] = 0;
       selections["allMissedTrades"] = {};
       selections["shouldReset"] = false;
@@ -185,8 +225,8 @@ export const runMicroTradingAlgo = (currentPrice, data) => {
 
         const { currentMissedTradeInfo, missedTrade } = sellMissedTrade({
           soldAt,
-          tradingThreshold,
-          currentValue,
+          tradeThreshold,
+          currentPrice,
           tradeInfo,
           missedTradeInfo,
         });
@@ -202,8 +242,8 @@ export const runMicroTradingAlgo = (currentPrice, data) => {
       if (newCurrentMissedTrades !== 5 && needToBuy) {
         const { currentMissedTradeInfo, missedTrade } = buyMissedTrade({
           boughtAt,
-          tradingThreshold,
-          currentValue,
+          tradeThreshold,
+          currentPrice,
           tradeInfo,
           missedTradeInfo,
         });
@@ -220,19 +260,19 @@ export const runMicroTradingAlgo = (currentPrice, data) => {
 };
 
 // TODO: GET THIS WORKING
-export const runAllTradingAlgos = async (data) => {
+export const runAllTradingAlgos = async (data: any) => {
   let newData = JSON.parse(JSON.stringify(data));
   let currentPrice = getCurrentPrice();
 
   // TODO:
   // Step 1: look at data and make any buys / sells that are necessary
   // Step 2: Update newData with all the changes from Step 1
-  const { holdSells, holdBuys } = runHoldTradingAlgo(currentPrice, data);
-  const { mainSells, mainBuys } = runMainTradingAlgo(currentPrice, data);
-  const { microSells, microBuys, newMicroData } = runMicroTradingAlgo(
+  const { holdSells, holdBuys } = runHoldTradingAlgo({ currentPrice, data });
+  const { mainSells, mainBuys } = runMainTradingAlgo({ currentPrice, data });
+  const { microSells, microBuys, newMicroData } = runMicroTradingAlgo({
     currentPrice,
-    data
-  );
+    data,
+  });
 
   let sells = {
     ...holdSells,

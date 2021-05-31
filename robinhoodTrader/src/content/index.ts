@@ -1,5 +1,4 @@
-console.log('Hey, the content script is running!');
-
+console.log("Hey, the content script is running!");
 
 // ==========================
 // Get Data
@@ -65,7 +64,6 @@ setTimeout(() => {
   }, 3000);
 }, 20000);
 
-// TODO: Add Typescript
 // TODO: If the trade fails then this needs to track this
 
 // Terms

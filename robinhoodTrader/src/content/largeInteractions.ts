@@ -14,18 +14,17 @@ import {
   handleBuy,
 } from "./interactWithSite";
 
-export const handleSellLogic = async (amount) => {
+export const handleSellLogic = async (amount: number) => {
   //  Move to the sell tab
   clickSellTab();
 
   // Should allays be selling in terms of usd
-  // Enter amount
   enterValue(amount);
 
-  //   Click the review button
+  // Click the review button
   clickReviewButton();
 
-  await new Promise((resolve) => {
+  await new Promise<void>((resolve) => {
     setTimeout(() => {
       handleSell();
       setTimeout(() => {
@@ -39,19 +38,16 @@ export const handleSellLogic = async (amount) => {
   });
 };
 
-export const handleBuyLogic = async (amount) => {
-  // amount should always be a number
+export const handleBuyLogic = async (amount: number) => {
   //  Move to the buy tab
   clickBuyTab();
 
   // Should allays be buying in terms of usd
-
-  // Enter amount
   enterValue(amount);
 
   // Click the review button
   clickReviewButton();
-  await new Promise((resolve) => {
+  await new Promise<void>((resolve) => {
     setTimeout(() => {
       handleBuy();
       setTimeout(() => {
