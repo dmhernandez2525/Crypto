@@ -4,10 +4,8 @@
   "description": "Auto Trade Chrome Extension built with TypeScript and Parcel",
   "main": "index.js",
   "scripts": {
-    "build:bg": "parcel build src/background/index.ts -d dist/background",
     "build:content": "parcel build src/content/index.ts -d dist/content",
-    "build:options": "parcel build src/options/index.html -d dist/options --public-url ./",
-    "build": "npm run build:bg && npm run build:content && npm run build:options && npm run build:popup && npm run build:devtools && npm run build:devtools:app",
+    "build": "npm run build:content",
     "clean": "rimraf dist",
     "copy:static": "copyfiles manifest.json assets/**/* dist",
     "dist": "npm run clean && npm run build && npm run copy:static",

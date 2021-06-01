@@ -38,35 +38,47 @@ export const getCurrentEquity = () => {
 
 export const getCurrentCoinAmount = () => {
   clickSellType();
+  // TODO: clean this up
+  let element = document.querySelectorAll(
+    "[data-testid=OrderForm]"
+  )[0] as HTMLElement;
 
-  parseInt(
-    document
-      .querySelectorAll("[data-testid=OrderForm]")[0]
-      .querySelector("footer")
-      .textContent.split("DOGE Available")[0]
-  );
+  let element2 = element.querySelector("footer");
+
+  if (element2 && element2.textContent) {
+    parseInt(element2.textContent.split("DOGE Available")[0]);
+  }
 };
 
 export const getCurrentPrice = () => {
   let priceArray: any = [];
+  // TODO: clean this up
+  let element = document.querySelectorAll(
+    "[data-testid=PortfolioValue]"
+  )[0] as HTMLElement;
+  let element2 = element.children[0] as HTMLElement;
+  let element3 = element2.children[0] as HTMLElement;
+  let element4 = element3?.firstChild?.firstChild as HTMLElement;
 
-  Array.from(
-    document.querySelectorAll("[data-testid=PortfolioValue]")[0].children[0]
-      .children[0].firstChild.firstChild.children
-  ).forEach((ele) => priceArray.push(ele.innerText));
+  Array.from(element4?.children).forEach((ele: any) =>
+    priceArray.push(ele.innerText)
+  );
 
   return parseFloat(parseFloat(priceArray.join("").split("$")[1]).toFixed(3));
 };
 
 export const getCurrentBuyingPower = () => {
   clickBuyTab();
-  const currentBuyingPower = parseInt(
-    document
-      .querySelectorAll("[data-testid=OrderForm]")[0]
-      .querySelector("footer")
-      .firstChild.outerText.split(" available")[0]
-      .split("$")[1]
-  );
+  // TODO: clean this up
+  const element = document.querySelectorAll(
+    "[data-testid=OrderForm]"
+  )[0] as HTMLElement;
+  const element2: any = element?.querySelector("footer")
+    ?.firstChild as HTMLInputElement;
+
+  const element3: string = element2.outerText.split(" available")[0];
+
+  const currentBuyingPower: number = parseInt(element3.split("$")[1]);
   const onePercent = currentBuyingPower / 100;
 
   return currentBuyingPower - onePercent;

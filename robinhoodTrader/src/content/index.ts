@@ -1,3 +1,4 @@
+import "regenerator-runtime/runtime";
 console.log("Hey, the content script is running!");
 
 // ==========================
