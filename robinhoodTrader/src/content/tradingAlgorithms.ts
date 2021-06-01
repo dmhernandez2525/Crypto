@@ -27,6 +27,9 @@ interface ISelections {
   tradeThreshold?: number;
 }
 
+type MicroData = { [key: string]: ISelections };
+type TradeData = { [key: string]: number };
+
 // ==========================
 // Get Data
 // ==========================
@@ -84,10 +87,10 @@ export const runMicroTradingAlgo = ({
   currentPrice,
   data,
 }: ITradingAlgoProps) => {
-  const microSells = {};
-  const microBuys = {};
+  const microSells: TradeData = {};
+  const microBuys: TradeData = {};
 
-  const newMicroData = {};
+  const newMicroData: MicroData = {};
   const currentEquity = getCurrentEquity();
   const currentBuyingPower = getCurrentBuyingPower();
 
@@ -135,7 +138,6 @@ export const runMicroTradingAlgo = ({
     }
 
     if (whatToDo === "sell") {
-      // TODO: fix this so that it calculating the correct value
       const amountMade = currentPrice - boughtAt;
 
       tradeInfo = { ...tradeInfo, type: "Sell" };
@@ -274,12 +276,15 @@ export const runAllTradingAlgos = async (data: any) => {
     data,
   });
 
-  let sells = {
+  type tradeAmounts = {
+    [key: string]: number;
+  };
+  let sells: tradeAmounts = {
     ...holdSells,
     ...mainSells,
     ...microSells,
   };
-  let buys = {
+  let buys: tradeAmounts = {
     ...holdBuys,
     ...mainBuys,
     ...microBuys,
@@ -287,15 +292,21 @@ export const runAllTradingAlgos = async (data: any) => {
 
   // Make sells / buys based on the algos output
   // amount should always be a number
-  Object.values(sells).forEach(async (amount) => {
-    console.log({ amount });
-    await handleSellLogic(amount);
-  });
-  Object.values(buys).forEach(async (amount) => {
-    console.log({ amount });
-    await handleBuyLogic(amount);
-  });
+  const callSell = async () => {
+    for (let amount of Object.values(sells)) {
+      console.log({ amount });
+      await handleSellLogic(amount);
+    }
+  };
+  const callBuy = async () => {
+    for (let amount of Object.values(buys)) {
+      console.log({ amount });
+      await handleBuyLogic(amount);
+    }
+  };
 
+  await callSell();
+  await callBuy();
   newData.Micro = newMicroData;
   return { newData };
 };
