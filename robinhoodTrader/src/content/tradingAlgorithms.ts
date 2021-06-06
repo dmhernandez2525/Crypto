@@ -1,23 +1,23 @@
+import {
+  ITradingData,
+  ITradeInfo,
+  trades,
+  allMissedTrades,
+} from "../interfaces";
 interface ITradingAlgoProps {
   currentPrice: number;
-  // TODO: update this type
-  data: any;
+  tradingData: ITradingData;
 }
-interface ITradeInfo {
-  id: string;
-  currentPrice: number;
-  type?: string;
-}
+
 interface ISelections {
   currentPercentageHolding?: number;
   currentPercentageInvested?: number;
   totalEquityLost?: number;
   totalEquityGained?: number;
-  trades?: any;
+  trades?: trades;
   needToSell?: boolean;
   needToBuy?: boolean;
-  currentMissedTrades?: any;
-  allMissedTrades?: any;
+  allMissedTrades?: allMissedTrades;
   shouldReset?: boolean;
   buyAt?: number;
   sellAt?: number;
@@ -27,7 +27,7 @@ interface ISelections {
   tradeThreshold?: number;
 }
 
-type MicroData = { [key: string]: ISelections };
+type ShortTermData = { [key: string]: ISelections };
 type TradeData = { [key: string]: number };
 
 // ==========================
@@ -52,15 +52,15 @@ import { buyMissedTrade, sellMissedTrade } from "./missedTradeLogic";
 // TODO: GET THIS WORKING
 export const runHoldTradingAlgo = ({
   currentPrice,
-  data,
+  tradingData,
 }: ITradingAlgoProps) => {
   const holdSells = {};
 
   const holdBuys = {};
-  const newData = { ...data };
+  const newData = { ...tradingData };
 
   // DO some check and update buys / sells
-  // update data
+  // update tradingData
 
   return { holdSells, holdBuys, newData };
 };
@@ -68,29 +68,29 @@ export const runHoldTradingAlgo = ({
 // TODO: GET THIS WORKING
 export const runMainTradingAlgo = ({
   currentPrice,
-  data,
+  tradingData,
 }: ITradingAlgoProps) => {
   const mainSells = {};
 
   const mainBuys = {};
-  const newData = { ...data };
+  const newData = { ...tradingData };
 
   // DO some check and update buys / sells
-  // update data
+  // update tradingData
 
   return { mainSells, mainBuys, newData };
 };
 
 // TODO: GET THIS WORKING
 
-export const runMicroTradingAlgo = ({
+export const runShortTermTradingAlgo = ({
   currentPrice,
-  data,
+  tradingData,
 }: ITradingAlgoProps) => {
-  const microSells: TradeData = {};
-  const microBuys: TradeData = {};
+  const shortTermSells: TradeData = {};
+  const shortTermBuys: TradeData = {};
 
-  const newMicroData: MicroData = {};
+  const newShortTermData: ShortTermData = {};
   const currentEquity = getCurrentEquity();
   const currentBuyingPower = getCurrentBuyingPower();
 
@@ -108,21 +108,22 @@ export const runMicroTradingAlgo = ({
       shouldReset,
       coinsBought,
       trades,
-      currentMissedTrades,
       allMissedTrades,
       totalEquityGained,
       totalEquityLost,
-    } = data.Micro[tier];
+    } = tradingData.shortTerm[tier];
+
+    let { currentMissedTradesCount } = allMissedTrades;
 
     const selections: ISelections = {};
     let whatToDo: string = "";
     let tradeInfo: ITradeInfo = {
-      id: `${Date.now()} micro ${tier} at price ${currentPrice}`,
+      id: `${Date.now()} shortTerm ${tier} at price ${currentPrice}`,
       currentPrice,
     };
     // JJ-Note Trades is defined above so depending on logic or when functions called; Makes sense
     // For some reason if you don't make a copy the original gets updated
-    let newCurrentMissedTrades = parseInt(currentMissedTrades.toString());
+    let newCurrentMissedTrades = parseInt(currentMissedTradesCount.toString());
     const currentTrades = JSON.parse(JSON.stringify(trades));
     const renameMe = currentPrice * (tradeThreshold / 100);
 
@@ -148,8 +149,10 @@ export const runMicroTradingAlgo = ({
       selections["trades"] = currentTrades;
       selections["needToSell"] = false;
       selections["needToBuy"] = true;
-      selections["currentMissedTrades"] = 0;
-      selections["allMissedTrades"] = {};
+      // TODO: this needs to be updated to work with the new schema
+      // selections["currentMissedTrades"] = 0;
+      // selections["allMissedTrades"] = {};
+
       selections["shouldReset"] = false;
       selections["buyAt"] = currentPrice - renameMe;
       selections["soldAt"] = currentPrice;
@@ -161,11 +164,11 @@ export const runMicroTradingAlgo = ({
       } else {
         selections["totalEquityGained"] = totalEquityGained + amountMade;
       }
-      newMicroData[tier] = {
-        ...data.Micro[tier],
+      newShortTermData[tier] = {
+        ...tradingData.shortTerm[tier],
         ...selections,
       };
-      microSells[`Micro${tier}`] = coinsBought * currentPrice;
+      shortTermSells[`shortTerm${tier}`] = coinsBought * currentPrice;
     } else if (whatToDo === "buy") {
       // TODO: ADD MORE INFO FOR THE TRADES
       tradeInfo = { ...tradeInfo, type: "Buy" };
@@ -185,16 +188,17 @@ export const runMicroTradingAlgo = ({
       selections["needToSell"] = true;
       selections["needToBuy"] = false;
       selections["coinsBought"] = amountUsdToBuy / currentPrice;
-      selections["currentMissedTrades"] = 0;
-      selections["allMissedTrades"] = {};
+      // TODO: this needs to be updated to work with the new schema
+      // selections["currentMissedTrades"] = 0;
+      // selections["allMissedTrades"] = {};
       selections["shouldReset"] = false;
 
-      newMicroData[tier] = {
-        ...data.Micro[tier],
+      newShortTermData[tier] = {
+        ...tradingData.shortTerm[tier],
         ...selections,
       };
 
-      microBuys[`Micro${tier}`] = amountUsdToBuy;
+      shortTermBuys[`shortTerm${tier}`] = amountUsdToBuy;
     } else if (whatToDo === "hold") {
       // We need to have a way to make a pair of values
       // ex.
@@ -213,8 +217,12 @@ export const runMicroTradingAlgo = ({
         // - If the currentMissedTrades is at 5 then it needs to hold and set the
         //   next trade to reset
         selections["shouldReset"] = true;
-        selections["currentMissedTrades"] = 0;
-        selections["allMissedTrades"] = {};
+        // TODO: this needs to be updated to work with the new schema
+        // missedTrades;
+        // currentIndex;
+        // currentMissedTradesCount;
+        // selections["currentMissedTrades"] = 0;
+        // selections["allMissedTrades"] = {};
       }
 
       if (newCurrentMissedTrades !== 5 && needToSell) {
@@ -236,7 +244,8 @@ export const runMicroTradingAlgo = ({
         if (missedTrade) {
           // THIS NEEDS TO BE FIXED
           // THE types are all off
-          selections["currentMissedTrades"] = newCurrentMissedTrades + 1;
+          // TODO: this needs to be updated to work with the new schema
+          // selections["currentMissedTrades"] = newCurrentMissedTrades + 1;
           currentAllMissedTrades[tradeInfo.id] = tradeInfo;
           selections["allMissedTrades"] = currentAllMissedTrades;
         }
@@ -251,43 +260,51 @@ export const runMicroTradingAlgo = ({
         });
       }
 
-      newMicroData[tier] = {
-        ...data.Micro[tier],
+      newShortTermData[tier] = {
+        ...tradingData.shortTerm[tier],
         ...selections,
       };
     }
   });
 
-  return { microSells, microBuys, newMicroData };
+  return { shortTermSells, shortTermBuys, newShortTermData };
 };
 
 // TODO: GET THIS WORKING
-export const runAllTradingAlgos = async (data: any) => {
-  let newData = JSON.parse(JSON.stringify(data));
+export const runAllTradingAlgos = async (tradingData: ITradingData) => {
+  let newData = JSON.parse(JSON.stringify(tradingData));
   let currentPrice = getCurrentPrice();
 
   // TODO:
-  // Step 1: look at data and make any buys / sells that are necessary
+  // Step 1: look at tradingData and make any buys / sells that are necessary
   // Step 2: Update newData with all the changes from Step 1
-  const { holdSells, holdBuys } = runHoldTradingAlgo({ currentPrice, data });
-  const { mainSells, mainBuys } = runMainTradingAlgo({ currentPrice, data });
-  const { microSells, microBuys, newMicroData } = runMicroTradingAlgo({
+  const { holdSells, holdBuys } = runHoldTradingAlgo({
     currentPrice,
-    data,
+    tradingData,
   });
+  const { mainSells, mainBuys } = runMainTradingAlgo({
+    currentPrice,
+    tradingData,
+  });
+  const { shortTermSells, shortTermBuys, newShortTermData } =
+    runShortTermTradingAlgo({
+      currentPrice,
+      tradingData,
+    });
 
+  // TODO: WE need to add all of the bu and sell together so we are onlyy doing 2 transations
   type tradeAmounts = {
     [key: string]: number;
   };
   let sells: tradeAmounts = {
     ...holdSells,
     ...mainSells,
-    ...microSells,
+    ...shortTermSells,
   };
   let buys: tradeAmounts = {
     ...holdBuys,
     ...mainBuys,
-    ...microBuys,
+    ...shortTermBuys,
   };
 
   // Make sells / buys based on the algos output
@@ -307,6 +324,6 @@ export const runAllTradingAlgos = async (data: any) => {
 
   await callSell();
   await callBuy();
-  newData.Micro = newMicroData;
+  newData.shortTerm = newShortTermData;
   return { newData };
 };

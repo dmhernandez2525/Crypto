@@ -1,4 +1,5 @@
-export const setData = (key: string, value: any) => {
+import { ITradingData } from "../interfaces";
+export const setData = (key: string, value: ITradingData) => {
   chrome.storage.sync.set({ [key]: value }, () => {
     console.log(`Set ${key} to ${value}`);
   });

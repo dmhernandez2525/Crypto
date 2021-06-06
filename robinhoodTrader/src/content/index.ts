@@ -1,4 +1,5 @@
 import "regenerator-runtime/runtime";
+import { ITradingData } from "../interfaces";
 console.log("Hey, the content script is running!");
 
 // ==========================
@@ -27,8 +28,8 @@ const doRegularLoop = async () => {
 };
 
 const resetData = () => {
-  const allData = {
-    Micro: {
+  const allData: ITradingData = {
+    shortTerm: {
       Tier1: {
         sellAt: 0,
         buyAt: 1,
@@ -41,9 +42,13 @@ const resetData = () => {
         coinsBought: 0,
         currentPercentageHolding: 0,
         currentPercentageInvested: 0,
-        trades: {},
-        currentMissedTrades: 0,
-        allMissedTrades: {},
+        trades: { buys: {}, sells: {} },
+        allMissedTrades: {
+          missedTrades: {},
+          // TODO:Fix this at some point
+          currentIndex: "None",
+          currentMissedTradesCount: 0,
+        },
         totalEquityGained: 0,
         totalEquityLost: 0,
       },
