@@ -21,14 +21,14 @@ const doRegularLoop = async () => {
   // Display the current price
   console.log(getCurrentPrice());
 
-  const { data } = await getData();
-  const { newData } = await runAllTradingAlgos(data);
+  const { tradingData } = await getData();
+  const { newTradingData } = await runAllTradingAlgos(tradingData);
 
-  setData("data", newData);
+  setData("tradingData", newTradingData);
 };
 
 const resetData = () => {
-  const allData: ITradingData = {
+  const tradingData: ITradingData = {
     shortTerm: {
       Tier1: {
         sellAt: 0,
@@ -55,8 +55,8 @@ const resetData = () => {
     },
   };
 
-  setData("data", allData);
-  console.log({ resetDataAllData: allData });
+  setData("tradingData", tradingData);
+  console.log({ resetDataAllData: tradingData });
 };
 // ==========================
 // Main Loop

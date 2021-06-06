@@ -15,6 +15,6 @@ export const getData = async () => {
       )
     );
 
-  const { data }: any = await getStorageData("data");
-  return { data };
+  const { tradingData }: any = await getStorageData("tradingData");
+  return { tradingData };
 };

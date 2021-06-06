@@ -57,12 +57,12 @@ export const runHoldTradingAlgo = ({
   const holdSells = {};
 
   const holdBuys = {};
-  const newData = { ...tradingData };
+  const newTradingData = { ...tradingData };
 
   // DO some check and update buys / sells
   // update tradingData
 
-  return { holdSells, holdBuys, newData };
+  return { holdSells, holdBuys, newTradingData };
 };
 
 // TODO: GET THIS WORKING
@@ -73,12 +73,12 @@ export const runMainTradingAlgo = ({
   const mainSells = {};
 
   const mainBuys = {};
-  const newData = { ...tradingData };
+  const newTradingData = { ...tradingData };
 
   // DO some check and update buys / sells
   // update tradingData
 
-  return { mainSells, mainBuys, newData };
+  return { mainSells, mainBuys, newTradingData };
 };
 
 // TODO: GET THIS WORKING
@@ -272,12 +272,12 @@ export const runShortTermTradingAlgo = ({
 
 // TODO: GET THIS WORKING
 export const runAllTradingAlgos = async (tradingData: ITradingData) => {
-  let newData = JSON.parse(JSON.stringify(tradingData));
+  let newTradingData = JSON.parse(JSON.stringify(tradingData));
   let currentPrice = getCurrentPrice();
 
   // TODO:
   // Step 1: look at tradingData and make any buys / sells that are necessary
-  // Step 2: Update newData with all the changes from Step 1
+  // Step 2: Update newTradingData with all the changes from Step 1
   const { holdSells, holdBuys } = runHoldTradingAlgo({
     currentPrice,
     tradingData,
@@ -324,6 +324,6 @@ export const runAllTradingAlgos = async (tradingData: ITradingData) => {
 
   await callSell();
   await callBuy();
-  newData.shortTerm = newShortTermData;
-  return { newData };
+  newTradingData.shortTerm = newShortTermData;
+  return { newTradingData };
 };
