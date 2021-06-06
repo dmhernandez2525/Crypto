@@ -1,16 +1,19 @@
+import { ITradeInfo, allMissedTrades } from "../interfaces";
+
+// TODO: combine these 2 interfaces
 interface IBuyMissedTradeProps {
   boughtAt: number;
   tradeThreshold: number;
   currentPrice: number;
-  tradeInfo: any;
-  missedTradeInfo: any;
+  tradeInfo: ITradeInfo;
+  missedTradeInfo: allMissedTrades;
 }
 interface ISellMissedTradeProps {
   soldAt: number;
   tradeThreshold: number;
   currentPrice: number;
-  tradeInfo: any;
-  missedTradeInfo: any;
+  tradeInfo: ITradeInfo;
+  missedTradeInfo: allMissedTrades;
 }
 
 export const buyMissedTrade = ({
@@ -23,12 +26,14 @@ export const buyMissedTrade = ({
   // This needs to deside if it should set the
   // current trade as a Missed Trade or not
 
-  let currentMissedTradeInfo = JSON.parse(JSON.stringify(missedTradeInfo));
-  let missedTrade = false;
+  let currentMissedTradeInfo: allMissedTrades = JSON.parse(
+    JSON.stringify(missedTradeInfo)
+  );
+  let missedTrade: boolean = false;
 
-  let tradeThresholdValue = boughtAt * (tradeThreshold / 100); // => 5
+  let tradeThresholdValue: number = boughtAt * (tradeThreshold / 100); // => 5
 
-  let down = boughtAt - tradeThresholdValue;
+  let down: number = boughtAt - tradeThresholdValue;
 
   // If currentPrice is less then down then we need to track that
   if (currentPrice < down && !currentMissedTradeInfo.bellowOrAtDown) {
@@ -56,12 +61,14 @@ export const sellMissedTrade = ({
   // This needs to deside if it should set the
   // current trade as a Missed Trade or not
 
-  let currentMissedTradeInfo = JSON.parse(JSON.stringify(missedTradeInfo));
+  let currentMissedTradeInfo: allMissedTrades = JSON.parse(
+    JSON.stringify(missedTradeInfo)
+  );
   let missedTrade = false;
 
-  let tradeThresholdValue = soldAt * (tradeThreshold / 100); // => 5
+  let tradeThresholdValue: number = soldAt * (tradeThreshold / 100); // => 5
 
-  let up = soldAt + tradeThresholdValue;
+  let up: number = soldAt + tradeThresholdValue;
 
   // If currentPrice is more then up then we need to track that
   if (currentPrice < up && !currentMissedTradeInfo.bellowOrAtUp) {
