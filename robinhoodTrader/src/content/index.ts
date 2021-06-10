@@ -10,14 +10,17 @@ import { getCurrentPrice } from "./getData";
 // ==========================
 // Trading Algorithms
 // ==========================
-import { runAllTradingAlgos } from "./tradingAlgorithms";
+import {
+  runAllTradingAlgos,
+  missedTradeDefualtInfo,
+} from "./tradingAlgorithms";
 
 // ==========================
 // Data Management
 // ==========================
 import { setData, getData } from "./dataManagement";
 
-const doRegularLoop = async () => {
+const doRegularLoop = async (): Promise<void> => {
   // Display the current price
   console.log(getCurrentPrice());
 
@@ -43,12 +46,7 @@ const resetData = () => {
         currentPercentageHolding: 0,
         currentPercentageInvested: 0,
         trades: { buys: {}, sells: {} },
-        allMissedTrades: {
-          missedTrades: {},
-          // TODO:Fix this at some point
-          currentIndex: "None",
-          currentMissedTradesCount: 0,
-        },
+        allMissedTrades: missedTradeDefualtInfo,
         totalEquityGained: 0,
         totalEquityLost: 0,
       },

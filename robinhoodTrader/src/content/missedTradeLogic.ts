@@ -1,19 +1,18 @@
 import { ITradeInfo, allMissedTrades } from "../interfaces";
 
-// TODO: combine these 2 interfaces
-interface IBuyMissedTradeProps {
-  boughtAt: number;
+interface IMissedTradeProps {
   tradeThreshold: number;
   currentPrice: number;
   tradeInfo: ITradeInfo;
   missedTradeInfo: allMissedTrades;
+  indexName: string;
 }
-interface ISellMissedTradeProps {
+interface ISellMissedTradeProps extends IMissedTradeProps {
   soldAt: number;
-  tradeThreshold: number;
-  currentPrice: number;
-  tradeInfo: ITradeInfo;
-  missedTradeInfo: allMissedTrades;
+}
+
+interface IBuyMissedTradeProps extends IMissedTradeProps {
+  boughtAt: number;
 }
 
 export const buyMissedTrade = ({
@@ -22,6 +21,7 @@ export const buyMissedTrade = ({
   currentPrice,
   tradeInfo,
   missedTradeInfo,
+  indexName,
 }: IBuyMissedTradeProps) => {
   // This needs to deside if it should set the
   // current trade as a Missed Trade or not
@@ -36,12 +36,20 @@ export const buyMissedTrade = ({
   let down: number = boughtAt - tradeThresholdValue;
 
   // If currentPrice is less then down then we need to track that
-  if (currentPrice < down && !currentMissedTradeInfo.bellowOrAtDown) {
-    currentMissedTradeInfo.bellowOrAtDown = tradeInfo;
-  } else if (currentPrice > down && currentMissedTradeInfo.bellowOrAtDown) {
+  if (
+    currentPrice < down &&
+    !currentMissedTradeInfo.missedTrades[indexName].bellowOrAtDown
+  ) {
+    currentMissedTradeInfo.missedTrades[indexName].bellowOrAtDown = tradeInfo;
+  } else if (
+    currentPrice > down &&
+    currentMissedTradeInfo.missedTrades[indexName].bellowOrAtDown
+  ) {
     // When these 2 values are enterd then this is a missedTrade
 
-    currentMissedTradeInfo.betwenDownAndBase = tradeInfo;
+    currentMissedTradeInfo.missedTrades[indexName].betwenDownAndBase =
+      tradeInfo;
+    currentMissedTradeInfo.missedTrades[indexName].isDone = true;
     missedTrade = true;
   }
 
@@ -57,6 +65,7 @@ export const sellMissedTrade = ({
   currentPrice,
   tradeInfo,
   missedTradeInfo,
+  indexName,
 }: ISellMissedTradeProps) => {
   // This needs to deside if it should set the
   // current trade as a Missed Trade or not
@@ -71,11 +80,18 @@ export const sellMissedTrade = ({
   let up: number = soldAt + tradeThresholdValue;
 
   // If currentPrice is more then up then we need to track that
-  if (currentPrice < up && !currentMissedTradeInfo.bellowOrAtUp) {
-    currentMissedTradeInfo.bellowOrAtUp = tradeInfo;
-  } else if (currentPrice > up && currentMissedTradeInfo.bellowOrAtUp) {
+  if (
+    currentPrice < up &&
+    !currentMissedTradeInfo.missedTrades[indexName].bellowOrAtUp
+  ) {
+    currentMissedTradeInfo.missedTrades[indexName].bellowOrAtUp = tradeInfo;
+  } else if (
+    currentPrice > up &&
+    currentMissedTradeInfo.missedTrades[indexName].bellowOrAtUp
+  ) {
     // When these 2 values are enterd then this is a missedTrade
-    currentMissedTradeInfo.betwenUpAndBase = tradeInfo;
+    currentMissedTradeInfo.missedTrades[indexName].betwenUpAndBase = tradeInfo;
+    currentMissedTradeInfo.missedTrades[indexName].isDone = true;
     missedTrade = true;
   }
 

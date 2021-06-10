@@ -22,6 +22,7 @@ export type trades = {
 export type allMissedTrades = {
   missedTrades: {
     [key: string]: {
+      isDone: boolean;
       bellowOrAtDown: boolean | ITradeInfo;
       betwenDownAndBase: boolean | ITradeInfo;
       bellowOrAtUp: boolean | ITradeInfo;
