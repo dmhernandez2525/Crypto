@@ -5,11 +5,29 @@ export const refreshPage = async () => {
 
   await new Promise<void>((resolve) => {
     setTimeout(() => {
-      document.location.reload();
-      resolve();
+      try {
+        window.location.href = window.location.href;
+      } catch (error) {
+        console.log("//=======================================>");
+        console.log("THERE WAS AN ERROR IN WITH THE FIRST REFRESH CODE");
+        console.log({ error });
+        console.log("//=======================================>");
+        try {
+          setTimeout(() => {
+            document.location.reload();
+            resolve();
+          }, 1000);
+        } catch (error) {
+          console.log("//=======================================>");
+          console.log("THERE WAS AN ERROR IN WITH THE SECOND REFRESH CODE");
+          console.log({ error });
+          console.log("//=======================================>");
+          resolve();
+        }
+      }
     }, 1000);
   });
 };
 
-// TODO look for buttons that shouldint be there
+// TODO: look for buttons that shouldint be there
 // clickDoneButton();

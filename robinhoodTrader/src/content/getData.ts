@@ -1,7 +1,7 @@
 // ==========================
 // Move Around On Site
 // ==========================
-import { clickBuyTab, clickSellType } from "./moveAroundOnSite";
+import { clickBuyTab, clickSellType, clickSellTab } from "./moveAroundOnSite";
 
 export const getOrderTypes = (): {
   limit: HTMLAnchorElement;
@@ -115,27 +115,42 @@ export const getCurrentCoinAmount = (): number => {
   return 0;
 };
 
-export const getCurrentPrice = (): number | null => {
-  const priceArray: string[] = [];
-  // TODO: clean this up
-  const elementWrapper: NodeListOf<HTMLElement> | null =
-    document.querySelectorAll("[data-testid=PortfolioValue]");
+export const getCurrentPrice = (type: string): number | null => {
+  const appElement = document.getElementsByClassName("app")[0] as HTMLElement;
+  if (type === "buy") {
+    if (appElement.style.backgroundColor !== "turquoise") {
+      appElement.style.backgroundColor = "turquoise";
+    }
+
+    clickBuyTab();
+  }
+  if (type === "sell") {
+    if (appElement.style.backgroundColor !== "mediumvioletred") {
+      appElement.style.backgroundColor = "mediumvioletred";
+    }
+
+    clickSellTab();
+  }
+
+  const elementWrapper: HTMLElement | null = document.querySelector(
+    "[data-testid=OrderForm]"
+  );
 
   if (elementWrapper !== null) {
-    const element: HTMLElement | null = elementWrapper[0];
+    const element: HTMLElement | null = Array.from(
+      document.querySelector("[data-testid=OrderForm]").querySelectorAll("span")
+    ).find((el) => el.textContent === "Estimated Price");
 
     if (element !== null) {
-      let element2 = element.children[0] as HTMLElement;
-      let element3 = element2.children[0] as HTMLElement;
-      let element4 = element3?.firstChild?.firstChild as HTMLElement;
+      // This is the div that wrapps estimated price and current price
+      let element2 = element.parentElement.parentElement
+        .parentElement as HTMLElement;
 
-      Array.from(element4?.children).forEach((ele: any) =>
-        priceArray.push(ele.innerText)
-      );
+      let element3 = element2.children as HTMLElement;
+      let element4 = element3[1].querySelector("span") as HTMLElement;
+      let price = element4.innerText;
 
-      return parseFloat(
-        parseFloat(priceArray.join("").split("$")[1]).toFixed(3)
-      );
+      return parseFloat(parseFloat(price.split("$")[1]).toFixed(6));
     }
   }
   return null;

@@ -2,7 +2,7 @@ export interface ITradeInfo {
   id: string;
   currentPrice: number;
   date: Date;
-  //   This is refuring to if it is Buy, Sel, Or Hold
+  //   This is referring to if it is Buy, Sell, Or Hold
   type?: string;
 }
 export type trades = {

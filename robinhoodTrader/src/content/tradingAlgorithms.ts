@@ -6,7 +6,6 @@ import {
 } from "../interfaces";
 
 interface ITradingAlgoProps {
-  currentPrice: number;
   tradingData: ITradingData;
   currentEquity: number;
   currentBuyingPower: number;
@@ -100,14 +99,13 @@ export const runMainTradingAlgo = ({
 };
 
 export const runShortTermTradingAlgo = ({
-  currentPrice,
   tradingData,
   currentEquity,
   currentBuyingPower,
 }: ITradingAlgoProps) => {
   const shortTermSells: TradeData = {};
   const shortTermBuys: TradeData = {};
-  const newShortTermData: ShortTermData = {};
+  const newShortTermData: ShortTermData = { ...tradingData.shortTerm };
 
   const tiers = ["Tier1"];
   // JJ-Note Possible improvement here with time complexity
@@ -129,160 +127,165 @@ export const runShortTermTradingAlgo = ({
       totalEquityLost,
     } = tradingData.shortTerm[tier];
 
-    const { currentMissedTradesCount } = allMissedTrades;
+    let priceLookupType = needToSell ? "sell" : "buy";
+    const currentPrice: number | null = getCurrentPrice(priceLookupType);
 
-    const selections: ISelections = {};
-    let whatToDo: string = "";
-    let tradeInfo: ITradeInfo = {
-      id: `${Date.now()} shortTerm ${tier} at price ${currentPrice}`,
-      currentPrice,
-      date: new Date(),
-    };
-    // JJ-Note Trades is defined above so depending on logic or when functions called; Makes sense
-    // For some reason if you don't make a copy the original gets updated
-    const newCurrentMissedTrades = parseInt(
-      currentMissedTradesCount.toString()
-    );
-    const currentTrades = JSON.parse(JSON.stringify(trades));
-    const renameMe = currentPrice * (tradeThreshold / 100);
+    if (currentPrice !== null) {
+      const { currentMissedTradesCount } = allMissedTrades;
 
-    // Checks if sell , buy or hold is what we should do
-    if (shouldReset) {
-      whatToDo = "sell";
-    } else if (needToSell && currentPrice >= sellAt) {
-      whatToDo = "sell";
-    } else if (needToBuy && currentPrice <= buyAt) {
-      whatToDo = "buy";
-    } else {
-      whatToDo = "hold";
-    }
-
-    if (whatToDo === "sell") {
-      const amountMade = currentPrice - boughtAt;
-
-      tradeInfo = { ...tradeInfo, type: "Sell" };
-      currentTrades[tradeInfo.id] = tradeInfo;
-      currentTrades.sells[tradeInfo.id] = tradeInfo;
-
-      selections["currentPercentageHolding"] = 0;
-      selections["currentPercentageInvested"] = 5;
-      selections["trades"] = currentTrades;
-      selections["needToSell"] = false;
-      selections["needToBuy"] = true;
-      selections["allMissedTrades"] = missedTradeDefualtInfo;
-      selections["shouldReset"] = false;
-      selections["buyAt"] = currentPrice - renameMe;
-      selections["soldAt"] = currentPrice;
-      selections["coinsBought"] = 0;
-
-      if (shouldReset) {
-        // TODO: double check this
-        selections["totalEquityLost"] = totalEquityLost + -amountMade;
-      } else {
-        selections["totalEquityGained"] = totalEquityGained + amountMade;
-      }
-      newShortTermData[tier] = {
-        ...tradingData.shortTerm[tier],
-        ...selections,
+      const selections: ISelections = {};
+      let whatToDo: string = "";
+      let tradeInfo: ITradeInfo = {
+        id: `${Date.now()} shortTerm ${tier} at price ${currentPrice}`,
+        currentPrice,
+        date: new Date(),
       };
-      shortTermSells[`shortTerm${tier}`] = coinsBought * currentPrice;
-    } else if (whatToDo === "buy") {
-      // TODO: ADD MORE INFO FOR THE TRADES
-      tradeInfo = { ...tradeInfo, type: "Buy" };
-      currentTrades[tradeInfo.id] = tradeInfo;
-      currentTrades.buys[tradeInfo.id] = tradeInfo;
-      // TODO:Allow larger buys
-      const amountUsdToBuy =
-        (currentEquity + currentBuyingPower) * (percentAllowedToTrade / 100);
-
-      // TODO: fix this
-      selections["currentPercentageInvested"] = 0;
-      selections["currentPercentageHolding"] = tradeThreshold;
-      selections["trades"] = currentTrades;
-
-      // TODO: Make sure this is working correctly
-      selections["sellAt"] = currentPrice + renameMe;
-      selections["boughtAt"] = currentPrice;
-      selections["needToSell"] = true;
-      selections["needToBuy"] = false;
-      selections["coinsBought"] = amountUsdToBuy / currentPrice;
-      selections["allMissedTrades"] = missedTradeDefualtInfo;
-      selections["shouldReset"] = false;
-
-      newShortTermData[tier] = {
-        ...tradingData.shortTerm[tier],
-        ...selections,
-      };
-
-      shortTermBuys[`shortTerm${tier}`] = amountUsdToBuy;
-    } else if (whatToDo === "hold") {
-      // We need to have a way to make a pair of values
-      // ex.
-      // missedTradeInfo {bellowOrAtDown:tradeInfo, betwenDownAndBase:tradeInfo  }
-      // missedTradeInfo: {bellowOrAtDown:false, betwenDownAndBase:false  }
-
-      const missedTradeIndexing: string[] = [
-        "first",
-        "second",
-        "third",
-        "fourth",
-        "fifth",
-      ];
-
-      const indexName = missedTradeIndexing[newCurrentMissedTrades];
-      const currentAllMissedTrades: allMissedTrades = JSON.parse(
-        JSON.stringify(allMissedTrades)
+      // JJ-Note Trades is defined above so depending on logic or when functions called; Makes sense
+      // For some reason if you don't make a copy the original gets updated
+      const newCurrentMissedTrades = parseInt(
+        currentMissedTradesCount.toString()
       );
+      const currentTrades = JSON.parse(JSON.stringify(trades));
+      const renameMe = currentPrice * (tradeThreshold / 100);
 
-      if (newCurrentMissedTrades === 5) {
-        // - If the currentMissedTrades is at 5 then it needs to hold and set the
-        //   next trade to reset
+      // Checks if sell , buy or hold is what we should do
+      if (shouldReset) {
+        whatToDo = "sell";
+      } else if (needToSell && currentPrice > sellAt) {
+        whatToDo = "sell";
+      } else if (needToBuy && currentPrice < buyAt) {
+        whatToDo = "buy";
+      } else {
+        whatToDo = "hold";
+      }
 
-        selections["shouldReset"] = true;
+      if (whatToDo === "sell") {
+        const amountMade = currentPrice - boughtAt;
+
+        tradeInfo = { ...tradeInfo, type: "Sell" };
+        currentTrades[tradeInfo.id] = tradeInfo;
+        currentTrades.sells[tradeInfo.id] = tradeInfo;
+
+        selections["currentPercentageHolding"] = 0;
+        selections["currentPercentageInvested"] = 5;
+        selections["trades"] = currentTrades;
+        selections["needToSell"] = false;
+        selections["needToBuy"] = true;
         selections["allMissedTrades"] = missedTradeDefualtInfo;
-      }
+        selections["shouldReset"] = false;
+        selections["buyAt"] = currentPrice - renameMe;
+        selections["soldAt"] = currentPrice;
+        selections["coinsBought"] = 0;
 
-      if (newCurrentMissedTrades !== 5 && needToSell) {
-        const { currentMissedTradeInfo, missedTrade } = sellMissedTrade({
-          soldAt,
-          tradeThreshold,
-          currentPrice,
-          tradeInfo,
-          missedTradeInfo: currentAllMissedTrades,
-          indexName,
-        });
-
-        if (missedTrade) {
-          currentAllMissedTrades.currentMissedTradesCount =
-            newCurrentMissedTrades + 1;
-
-          selections["allMissedTrades"] = currentMissedTradeInfo;
+        if (shouldReset) {
+          // TODO: double check this
+          selections["totalEquityLost"] = totalEquityLost - amountMade;
+        } else {
+          selections["totalEquityGained"] = totalEquityGained + amountMade;
         }
-      }
+        newShortTermData[tier] = {
+          ...tradingData.shortTerm[tier],
+          ...selections,
+        };
+        shortTermSells[`shortTerm${tier}`] = coinsBought * currentPrice;
+      } else if (whatToDo === "buy") {
+        // TODO: ADD MORE INFO FOR THE TRADES
+        tradeInfo = { ...tradeInfo, type: "Buy" };
+        currentTrades[tradeInfo.id] = tradeInfo;
+        currentTrades.buys[tradeInfo.id] = tradeInfo;
+        // TODO:Allow larger buys
+        const amountUsdToBuy =
+          (currentEquity + currentBuyingPower) * (percentAllowedToTrade / 100);
 
-      if (newCurrentMissedTrades !== 5 && needToBuy) {
-        // TODO: dry this code up most of this is exactly the same as the code above
-        const { currentMissedTradeInfo, missedTrade } = buyMissedTrade({
-          boughtAt,
-          tradeThreshold,
-          currentPrice,
-          tradeInfo,
-          missedTradeInfo: currentAllMissedTrades,
-          indexName,
-        });
+        // TODO: fix this
+        selections["currentPercentageInvested"] = 0;
+        selections["currentPercentageHolding"] = tradeThreshold;
+        selections["trades"] = currentTrades;
 
-        if (missedTrade) {
-          currentAllMissedTrades.currentMissedTradesCount =
-            newCurrentMissedTrades + 1;
+        // TODO: Make sure this is working correctly
+        selections["sellAt"] = currentPrice + renameMe;
+        selections["boughtAt"] = currentPrice;
+        selections["needToSell"] = true;
+        selections["needToBuy"] = false;
+        selections["coinsBought"] = amountUsdToBuy / currentPrice;
+        selections["allMissedTrades"] = missedTradeDefualtInfo;
+        selections["shouldReset"] = false;
 
-          selections["allMissedTrades"] = currentMissedTradeInfo;
+        newShortTermData[tier] = {
+          ...tradingData.shortTerm[tier],
+          ...selections,
+        };
+
+        shortTermBuys[`shortTerm${tier}`] = amountUsdToBuy;
+      } else if (whatToDo === "hold") {
+        // We need to have a way to make a pair of values
+        // ex.
+        // missedTradeInfo {bellowOrAtDown:tradeInfo, betwenDownAndBase:tradeInfo  }
+        // missedTradeInfo: {bellowOrAtDown:false, betwenDownAndBase:false  }
+
+        const missedTradeIndexing: string[] = [
+          "first",
+          "second",
+          "third",
+          "fourth",
+          "fifth",
+        ];
+
+        const indexName = missedTradeIndexing[newCurrentMissedTrades];
+        const currentAllMissedTrades: allMissedTrades = JSON.parse(
+          JSON.stringify(allMissedTrades)
+        );
+
+        if (newCurrentMissedTrades === 5) {
+          // - If the currentMissedTrades is at 5 then it needs to hold and set the
+          //   next trade to reset
+
+          selections["shouldReset"] = true;
+          selections["allMissedTrades"] = missedTradeDefualtInfo;
         }
-      }
 
-      newShortTermData[tier] = {
-        ...tradingData.shortTerm[tier],
-        ...selections,
-      };
+        if (newCurrentMissedTrades !== 5 && needToSell) {
+          const { currentMissedTradeInfo, missedTrade } = sellMissedTrade({
+            soldAt,
+            tradeThreshold,
+            currentPrice,
+            tradeInfo,
+            missedTradeInfo: currentAllMissedTrades,
+            indexName,
+          });
+
+          if (missedTrade) {
+            currentAllMissedTrades.currentMissedTradesCount =
+              newCurrentMissedTrades + 1;
+
+            selections["allMissedTrades"] = currentMissedTradeInfo;
+          }
+        }
+
+        if (newCurrentMissedTrades !== 5 && needToBuy) {
+          // TODO: dry this code up most of this is exactly the same as the code above
+          const { currentMissedTradeInfo, missedTrade } = buyMissedTrade({
+            boughtAt,
+            tradeThreshold,
+            currentPrice,
+            tradeInfo,
+            missedTradeInfo: currentAllMissedTrades,
+            indexName,
+          });
+
+          if (missedTrade) {
+            currentAllMissedTrades.currentMissedTradesCount =
+              newCurrentMissedTrades + 1;
+
+            selections["allMissedTrades"] = currentMissedTradeInfo;
+          }
+        }
+
+        newShortTermData[tier] = {
+          ...tradingData.shortTerm[tier],
+          ...selections,
+        };
+      }
     }
   });
 
@@ -293,70 +296,70 @@ export const runAllTradingAlgos = async (tradingData: ITradingData) => {
   const newTradingData = JSON.parse(JSON.stringify(tradingData));
   let shouldReset: boolean = false;
 
-  const currentPrice: number | null = getCurrentPrice();
   // TODO: we need to do null checks on the return value of theses functions
   const currentEquity: number = getCurrentEquity();
   const currentBuyingPower: number = getCurrentBuyingPower();
-  if (currentPrice !== null) {
-    // TODO:
-    // Step 1: look at tradingData and make any buys / sells that are necessary
-    // Step 2: Update newTradingData with all the changes from Step 1
 
-    // const { holdSells, holdBuys } = runHoldTradingAlgo({
-    //   currentPrice,
-    //   tradingData,
-    // });
-    // const { mainSells, mainBuys } = runMainTradingAlgo({
-    //   currentPrice,
-    //   tradingData,
-    // });
-    const { shortTermSells, shortTermBuys, newShortTermData } =
-      runShortTermTradingAlgo({
-        currentPrice,
-        tradingData,
-        currentEquity,
-        currentBuyingPower,
-      });
+  // TODO:
+  // Step 1: look at tradingData and make any buys / sells that are necessary
+  // Step 2: Update newTradingData with all the changes from Step 1
 
-    // TODO: WE need to add all of the bu and sell together so we are onlyy doing 2 transations
-    type tradeAmounts = {
-      [key: string]: number;
-    };
-    const sells: tradeAmounts = {
-      // ...holdSells,
-      // ...mainSells,
-      ...shortTermSells,
-    };
-    const buys: tradeAmounts = {
-      // ...holdBuys,
-      // ...mainBuys,
-      ...shortTermBuys,
-    };
+  // const { holdSells, holdBuys } = runHoldTradingAlgo({
+  //   currentPrice,
+  //   tradingData,
+  // });
+  // const { mainSells, mainBuys } = runMainTradingAlgo({
+  //   currentPrice,
+  //   tradingData,
+  // });
+  const { shortTermSells, shortTermBuys, newShortTermData } =
+    runShortTermTradingAlgo({
+      tradingData,
+      currentEquity,
+      currentBuyingPower,
+    });
 
-    // Make sells / buys based on the algos output
-    // Amount should always be a number
+  // TODO: WE need to add all of the bu and sell together so we are onlyy doing 2 transations
+  type tradeAmounts = {
+    [key: string]: number;
+  };
+  const sells: tradeAmounts = {
+    // ...holdSells,
+    // ...mainSells,
+    ...shortTermSells,
+  };
+  const buys: tradeAmounts = {
+    // ...holdBuys,
+    // ...mainBuys,
+    ...shortTermBuys,
+  };
 
-    // We can probibly subtract the buy and sell amounts and only do one sell
+  // Make sells / buys based on the algos output
+  // Amount should always be a number
 
-    const callSell = async () => {
-      for (let amount of Object.values(sells)) {
-        console.log({ sells, newShortTermData });
-        await handleSellLogic(amount);
-        shouldReset = true;
-      }
-    };
-    const callBuy = async () => {
-      for (let amount of Object.values(buys)) {
-        console.log({ buys, newShortTermData });
-        await handleBuyLogic(amount);
-        shouldReset = true;
-      }
-    };
+  // We can probibly subtract the buy and sell amounts and only do one sell
+  let log = false;
+  const callSell = async () => {
+    for (let amount of Object.values(sells)) {
+      log = true;
+      await handleSellLogic(amount);
+      shouldReset = true;
+    }
+  };
+  const callBuy = async () => {
+    for (let amount of Object.values(buys)) {
+      log = true;
 
-    await callSell();
-    await callBuy();
-    newTradingData.shortTerm = newShortTermData;
-  }
+      await handleBuyLogic(amount);
+      // shouldReset = true;
+    }
+  };
+
+  await callSell();
+  await callBuy();
+
+  log && console.log({ buys, newShortTermData, sells });
+  newTradingData.shortTerm = newShortTermData;
 
   return { newTradingData, shouldReset };
 };
