@@ -1,33 +1,24 @@
 import "regenerator-runtime/runtime";
+
+//Interfaces
 import { ITradingData } from "../interfaces";
-console.log("Hey, the content script is running!");
 
-// ==========================
-// Get Data
-// ==========================
-import { getCurrentPrice } from "./getData";
-
-// ==========================
 // Trading Algorithms
-// ==========================
 import {
   runAllTradingAlgos,
   missedTradeDefualtInfo,
 } from "./tradingAlgorithms";
 
-// ==========================
 // Data Management
-// ==========================
 import { setData, getData } from "./dataManagement";
 
+console.log("Hey, the content script is running!");
+
 const doRegularLoop = async (): Promise<void> => {
-  // Display the current price
-  console.log(getCurrentPrice());
-
   const { tradingData } = await getData();
-  const { newTradingData } = await runAllTradingAlgos(tradingData);
+  const { newTradingData, shouldReset } = await runAllTradingAlgos(tradingData);
 
-  setData("tradingData", newTradingData);
+  setData({ index: "tradingData", newTradingData, shouldReset });
 };
 
 const resetData = () => {
@@ -40,7 +31,8 @@ const resetData = () => {
         soldAt: 0,
         needToSell: false,
         needToBuy: true,
-        tradeThreshold: 5,
+        tradeThreshold: 0.1,
+        percentAllowedToTrade: 30,
         shouldReset: false,
         coinsBought: 0,
         currentPercentageHolding: 0,
@@ -53,7 +45,12 @@ const resetData = () => {
     },
   };
 
-  setData("tradingData", tradingData);
+  setData({
+    index: "tradingData",
+    newTradingData: tradingData,
+    shouldReset: false,
+  });
+
   console.log({ resetDataAllData: tradingData });
 };
 // ==========================
@@ -61,13 +58,18 @@ const resetData = () => {
 // ==========================
 setTimeout(() => {
   console.log("Wait twenty seconds before running any code");
+
   setInterval(async () => {
-    // await doRegularLoop();
+    await doRegularLoop();
+
     // resetData();
   }, 3000);
-}, 20000);
+}, 10000);
 
-// TODO: If the trade fails then this needs to track this
+// TODO:
+// - If the trade fails then this needs to track this
+// - We need to track the miss trade thresholds
+// -
 
 // Terms
 // // Missed Trade:

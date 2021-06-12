@@ -1,6 +1,7 @@
 export interface ITradeInfo {
   id: string;
   currentPrice: number;
+  date: Date;
   //   This is refuring to if it is Buy, Sel, Or Hold
   type?: string;
 }
@@ -49,6 +50,7 @@ export interface ITradingData {
       needToSell: boolean;
       needToBuy: boolean;
       tradeThreshold: number;
+      percentAllowedToTrade: number;
       shouldReset: boolean;
       coinsBought: number;
       currentPercentageHolding: number;

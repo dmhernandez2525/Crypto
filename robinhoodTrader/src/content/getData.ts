@@ -8,7 +8,7 @@ export const getOrderTypes = (): {
   market: HTMLAnchorElement;
 } | null => {
   //TODO: this needs to be cleaned up
-  console.log("Click the order type button");
+  // console.log("Click the order type button");
   const menuPopoverWrapper: NodeListOf<HTMLElement> | null =
     document.querySelectorAll("[data-testid=MenuPopoverTrigger]");
   const menuPopover: HTMLElement | null = menuPopoverWrapper[0];

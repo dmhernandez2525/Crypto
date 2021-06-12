@@ -1,8 +1,30 @@
 import { ITradingData } from "../interfaces";
-export const setData = (key: string, value: ITradingData) => {
-  chrome.storage.sync.set({ [key]: value }, () => {
-    console.log(`Set ${key} to ${value}`);
+import { refreshPage } from "./refreshPage";
+
+interface ISetDataProps {
+  index: string;
+  newTradingData: ITradingData;
+  shouldReset: boolean;
+}
+
+export const setData = async ({
+  index,
+  newTradingData,
+  shouldReset,
+}: ISetDataProps) => {
+  await chrome.storage.sync.set({ [index]: newTradingData }, () => {
+    console.log(`Set ${index} to ${newTradingData}`);
   });
+
+  await new Promise<void>((resolve) => {
+    setTimeout(() => {
+      setTimeout(() => {
+        resolve();
+      }, 1000);
+    }, 1000);
+  });
+
+  shouldReset && (await refreshPage());
 };
 
 export const getData = async () => {

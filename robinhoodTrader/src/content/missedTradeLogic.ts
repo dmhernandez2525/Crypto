@@ -67,6 +67,8 @@ export const sellMissedTrade = ({
   missedTradeInfo,
   indexName,
 }: ISellMissedTradeProps) => {
+  // additional logic to check that it doesn't just add the first 5
+  // trades but instead tracks each missed trade at the correct proamitors
   // This needs to deside if it should set the
   // current trade as a Missed Trade or not
 

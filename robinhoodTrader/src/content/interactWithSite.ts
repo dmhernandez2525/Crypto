@@ -1,5 +1,5 @@
 export const clickReviewButton = () => {
-  console.log("Click the review button");
+  // console.log("Click the review button");
 
   const element: HTMLElement = document.querySelectorAll(
     "[data-testid=OrderFormPrimaryButtonReview]"
@@ -10,7 +10,7 @@ export const clickReviewButton = () => {
 
 export const clickDoneButton = async () => {
   // Find the done button
-  console.log("Find the done button");
+  // console.log("Find the done button");
   let spans: any = document.getElementsByTagName("span");
   let spanContainer;
 
@@ -21,8 +21,7 @@ export const clickDoneButton = async () => {
     }
   }
   // Click the done button
-  console.log("Click the done button");
-  console.log(spanContainer);
+  // console.log("Click the done button");
   spanContainer && (await spanContainer.click());
 };
 
@@ -42,7 +41,7 @@ export const enterValue = (value: number) => {
 };
 
 export const handleSell = () => {
-  console.log("Sell");
+  // console.log("Sell");
 
   const element: HTMLElement = document.querySelectorAll(
     "[data-testid=OrderFormPrimaryButtonSubmit]"
@@ -52,7 +51,7 @@ export const handleSell = () => {
 };
 
 export const handleBuy = () => {
-  console.log("Buy");
+  // console.log("Buy");
 
   const element: HTMLElement = document.querySelectorAll(
     "[data-testid=OrderFormPrimaryButtonSubmit]"

@@ -8,6 +8,8 @@ import {
 interface ITradingAlgoProps {
   currentPrice: number;
   tradingData: ITradingData;
+  currentEquity: number;
+  currentBuyingPower: number;
 }
 
 interface ISelections {
@@ -97,18 +99,15 @@ export const runMainTradingAlgo = ({
   return { mainSells, mainBuys, newTradingData };
 };
 
-// TODO: GET THIS WORKING
-
 export const runShortTermTradingAlgo = ({
   currentPrice,
   tradingData,
+  currentEquity,
+  currentBuyingPower,
 }: ITradingAlgoProps) => {
   const shortTermSells: TradeData = {};
   const shortTermBuys: TradeData = {};
-
   const newShortTermData: ShortTermData = {};
-  const currentEquity = getCurrentEquity();
-  const currentBuyingPower = getCurrentBuyingPower();
 
   const tiers = ["Tier1"];
   // JJ-Note Possible improvement here with time complexity
@@ -121,6 +120,7 @@ export const runShortTermTradingAlgo = ({
       needToSell,
       needToBuy,
       tradeThreshold,
+      percentAllowedToTrade,
       shouldReset,
       coinsBought,
       trades,
@@ -136,6 +136,7 @@ export const runShortTermTradingAlgo = ({
     let tradeInfo: ITradeInfo = {
       id: `${Date.now()} shortTerm ${tier} at price ${currentPrice}`,
       currentPrice,
+      date: new Date(),
     };
     // JJ-Note Trades is defined above so depending on logic or when functions called; Makes sense
     // For some reason if you don't make a copy the original gets updated
@@ -161,6 +162,7 @@ export const runShortTermTradingAlgo = ({
 
       tradeInfo = { ...tradeInfo, type: "Sell" };
       currentTrades[tradeInfo.id] = tradeInfo;
+      currentTrades.sells[tradeInfo.id] = tradeInfo;
 
       selections["currentPercentageHolding"] = 0;
       selections["currentPercentageInvested"] = 5;
@@ -188,9 +190,10 @@ export const runShortTermTradingAlgo = ({
       // TODO: ADD MORE INFO FOR THE TRADES
       tradeInfo = { ...tradeInfo, type: "Buy" };
       currentTrades[tradeInfo.id] = tradeInfo;
-
+      currentTrades.buys[tradeInfo.id] = tradeInfo;
+      // TODO:Allow larger buys
       const amountUsdToBuy =
-        (currentEquity + currentBuyingPower) * (tradeThreshold / 100);
+        (currentEquity + currentBuyingPower) * (percentAllowedToTrade / 100);
 
       // TODO: fix this
       selections["currentPercentageInvested"] = 0;
@@ -227,6 +230,9 @@ export const runShortTermTradingAlgo = ({
       ];
 
       const indexName = missedTradeIndexing[newCurrentMissedTrades];
+      const currentAllMissedTrades: allMissedTrades = JSON.parse(
+        JSON.stringify(allMissedTrades)
+      );
 
       if (newCurrentMissedTrades === 5) {
         // - If the currentMissedTrades is at 5 then it needs to hold and set the
@@ -237,13 +243,6 @@ export const runShortTermTradingAlgo = ({
       }
 
       if (newCurrentMissedTrades !== 5 && needToSell) {
-        // additional logic to check that it doesn't just add the first 5
-        // trades but instead tracks each missed trade at the correct proamitors
-
-        const currentAllMissedTrades: allMissedTrades = JSON.parse(
-          JSON.stringify(allMissedTrades)
-        );
-
         const { currentMissedTradeInfo, missedTrade } = sellMissedTrade({
           soldAt,
           tradeThreshold,
@@ -254,8 +253,6 @@ export const runShortTermTradingAlgo = ({
         });
 
         if (missedTrade) {
-          // TODO: dubble check that this is all working
-
           currentAllMissedTrades.currentMissedTradesCount =
             newCurrentMissedTrades + 1;
 
@@ -265,11 +262,6 @@ export const runShortTermTradingAlgo = ({
 
       if (newCurrentMissedTrades !== 5 && needToBuy) {
         // TODO: dry this code up most of this is exactly the same as the code above
-        // TODO: dubble check that this is all working
-        const currentAllMissedTrades: allMissedTrades = JSON.parse(
-          JSON.stringify(allMissedTrades)
-        );
-
         const { currentMissedTradeInfo, missedTrade } = buyMissedTrade({
           boughtAt,
           tradeThreshold,
@@ -297,27 +289,33 @@ export const runShortTermTradingAlgo = ({
   return { shortTermSells, shortTermBuys, newShortTermData };
 };
 
-// TODO: GET THIS WORKING
 export const runAllTradingAlgos = async (tradingData: ITradingData) => {
   const newTradingData = JSON.parse(JSON.stringify(tradingData));
-  const currentPrice: number | null = getCurrentPrice();
+  let shouldReset: boolean = false;
 
+  const currentPrice: number | null = getCurrentPrice();
+  // TODO: we need to do null checks on the return value of theses functions
+  const currentEquity: number = getCurrentEquity();
+  const currentBuyingPower: number = getCurrentBuyingPower();
   if (currentPrice !== null) {
     // TODO:
     // Step 1: look at tradingData and make any buys / sells that are necessary
     // Step 2: Update newTradingData with all the changes from Step 1
-    const { holdSells, holdBuys } = runHoldTradingAlgo({
-      currentPrice,
-      tradingData,
-    });
-    const { mainSells, mainBuys } = runMainTradingAlgo({
-      currentPrice,
-      tradingData,
-    });
+
+    // const { holdSells, holdBuys } = runHoldTradingAlgo({
+    //   currentPrice,
+    //   tradingData,
+    // });
+    // const { mainSells, mainBuys } = runMainTradingAlgo({
+    //   currentPrice,
+    //   tradingData,
+    // });
     const { shortTermSells, shortTermBuys, newShortTermData } =
       runShortTermTradingAlgo({
         currentPrice,
         tradingData,
+        currentEquity,
+        currentBuyingPower,
       });
 
     // TODO: WE need to add all of the bu and sell together so we are onlyy doing 2 transations
@@ -325,30 +323,33 @@ export const runAllTradingAlgos = async (tradingData: ITradingData) => {
       [key: string]: number;
     };
     const sells: tradeAmounts = {
-      ...holdSells,
-      ...mainSells,
+      // ...holdSells,
+      // ...mainSells,
       ...shortTermSells,
     };
     const buys: tradeAmounts = {
-      ...holdBuys,
-      ...mainBuys,
+      // ...holdBuys,
+      // ...mainBuys,
       ...shortTermBuys,
     };
 
     // Make sells / buys based on the algos output
-    // amount should always be a number
+    // Amount should always be a number
 
-    // We can probibly subtract the buy and ell amounts and only do one sell
+    // We can probibly subtract the buy and sell amounts and only do one sell
+
     const callSell = async () => {
       for (let amount of Object.values(sells)) {
-        console.log({ amount });
+        console.log({ sells, newShortTermData });
         await handleSellLogic(amount);
+        shouldReset = true;
       }
     };
     const callBuy = async () => {
       for (let amount of Object.values(buys)) {
-        console.log({ amount });
+        console.log({ buys, newShortTermData });
         await handleBuyLogic(amount);
+        shouldReset = true;
       }
     };
 
@@ -357,5 +358,5 @@ export const runAllTradingAlgos = async (tradingData: ITradingData) => {
     newTradingData.shortTerm = newShortTermData;
   }
 
-  return { newTradingData };
+  return { newTradingData, shouldReset };
 };

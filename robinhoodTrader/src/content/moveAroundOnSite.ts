@@ -1,12 +1,12 @@
 export const clickSellTab = () => {
-  console.log("Move to the sell tab");
+  // console.log("Move to the sell tab");
 
   document.querySelectorAll("[data-testid=OrderFormHeading-Sell]")[0].click();
   document.querySelectorAll("[data-testid=OrderForm]")[0].click();
 };
 
 export const clickBuyTab = () => {
-  console.log("Move to the buy tab");
+  // console.log("Move to the buy tab");
 
   let divs = document.getElementsByTagName("div");
   let divContainer;
